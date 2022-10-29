@@ -1,13 +1,13 @@
 <?php
 
-namespace mdm\admin\models\searchs;
+namespace davidxu\admin\models\searchs;
 
 use Yii;
 use yii\base\Model;
 use yii\data\ArrayDataProvider;
-use mdm\admin\models\BizRule as MBizRule;
-use mdm\admin\components\RouteRule;
-use mdm\admin\components\Configs;
+use davidxu\admin\models\BizRule as MBizRule;
+use davidxu\admin\components\RouteRule;
+use davidxu\admin\components\Configs;
 
 /**
  * Description of BizRule
@@ -49,7 +49,7 @@ class BizRule extends Model
         /* @var \yii\rbac\Manager $authManager */
         $authManager = Configs::authManager();
         $models = [];
-        $included = !($this->load($params) && $this->validate() && trim((string)$this->name) !== '');
+        $included = !($this->load($params) && $this->validate() && trim($this->name) !== '');
         foreach ($authManager->getRules() as $name => $item) {
             if ($name != RouteRule::RULE_NAME && ($included || stripos($item->name, $this->name) !== false)) {
                 $models[$name] = new MBizRule($item);

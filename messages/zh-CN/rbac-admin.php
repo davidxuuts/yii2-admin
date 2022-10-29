@@ -1,6 +1,6 @@
 <?php
 /**
- * Message translations for \mdmsoft\yii2-admin.
+ * Message translations for \davidxu\admin.
  *
  * It contains the localizable messages extracted from source code.
  * You may modify this file by translating the extracted messages.
@@ -16,15 +16,30 @@
  * NOTE: this file must be saved in UTF-8 encoding.
  */
 return [
+    'Admin' => '认证授权',
     'Assignments' => '分配',
+    'Add' => '新增',
     'Users' => '用户列表',
     'User' => '用户',
+    'Username' => '用户名',
+    'Assigned users' => '已分配用户',
+    'Search username' => '输入用户名来查找',
+    'Search title' => '输入标题来查找',
+    'Search name/parent name' => '输入名称/父级名称来查找',
+    'Search name/role(permission) name/description' => '输入名称/角色(权限)名称/描述来查找',
+    'New route(s)' => '新建路由',
+    'Search for available' => '查找可用路由',
+    'Search for assigned' => '查找已分配路由',
+    'Menu "{value}" not found.' => '菜单"{value}"不存在',
+    'Route "{value}" not found.' => '路由"{value}"不存在',
     'Available' => '可用',
     'Assigned' => '分配',
     'Create' => '新增',
     'Update' => '更新',
     'Roles' => '角色列表',
-    'Create Role' => '创建角色',
+    'Create Role' => '新建角色',
+    'Create menu' => '新建菜单',
+    'Create Menu category' => '新建菜单分类',
     'Name' => '名称',
     'Type' => '类型',
     'Description' => '描述',
@@ -32,7 +47,10 @@ return [
     'Data' => '数据',
     'Update Role' => '更新角色',
     'Delete' => '删除',
+    'Please select app id' => '请选择APP ID',
     'Are you sure to delete this item?' => '确认要删除吗?',
+    'Saved successfully' => '保存成功',
+    'Deleted successfully' => '删除成功',
     'ID' => 'ID',
     'Parent' => '父级',
     'Parent Name' => '父级名称',
@@ -57,6 +75,11 @@ return [
     'Reset' => '重置',
     'Update Menu' => '更新菜单',
     'Menus' => '菜单列表',
+    'Title' => '标题',
+    'Addons name' => '插件名称',
+    'Icon' => '图标',
+    'Status' => '状态',
+    'Menu category' => '菜单分类',
     'Order' => '排序',
     'Class Name' => '类名',
     'Assignment' => '分配',

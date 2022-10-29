@@ -1,9 +1,9 @@
 <?php
 
-namespace mdm\admin\models\form;
+namespace davidxu\admin\models\form;
 
 use Yii;
-use mdm\admin\models\User;
+use davidxu\admin\models\User;
 use yii\base\Model;
 
 /**

@@ -3,8 +3,8 @@
 use yii\helpers\Html;
 
 /* @var $this yii\web\View */
-/* @var $model mdm\admin\models\AuthItem */
-/* @var $context mdm\admin\components\ItemController */
+/* @var $model davidxu\admin\models\AuthItem */
+/* @var $context davidxu\admin\components\ItemController */
 
 $context = $this->context;
 $labels = $context->labels();
@@ -13,11 +13,17 @@ $this->params['breadcrumbs'][] = ['label' => Yii::t('rbac-admin', $labels['Items
 $this->params['breadcrumbs'][] = ['label' => $model->name, 'url' => ['view', 'id' => $model->name]];
 $this->params['breadcrumbs'][] = Yii::t('rbac-admin', 'Update');
 ?>
-<div class="auth-item-update">
-    <h1><?= Html::encode($this->title) ?></h1>
-    <?=
-    $this->render('_form', [
-        'model' => $model,
-    ]);
-    ?>
+
+<div class="admin-auth-item-update card card-outline card-secondary">
+    <div class="card-header">
+        <h4 class="card-title"><?= Html::encode($this->title); ?> </h4>
+    </div>
+    <div class="card-body pt-3 pl-0 pr-0">
+        <div class="container">
+            <?= $this->render('_form', [
+                'model' => $model,
+            ]) ?>
+        </div>
+    </div>
 </div>
+

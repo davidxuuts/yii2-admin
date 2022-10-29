@@ -1,11 +1,11 @@
 <?php
 
-namespace mdm\admin\models;
+namespace davidxu\admin\models;
 
-use mdm\admin\components\Configs;
-use mdm\admin\components\Helper;
-use mdm\admin\controllers\AssignmentController;
-use mdm\admin\Module;
+use davidxu\admin\components\Configs;
+use davidxu\admin\components\Helper;
+use davidxu\admin\controllers\AssignmentController;
+use davidxu\admin\Module;
 use Yii;
 use yii\base\Model;
 use yii\helpers\Json;

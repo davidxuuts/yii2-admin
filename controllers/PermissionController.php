@@ -1,8 +1,8 @@
 <?php
 
-namespace mdm\admin\controllers;
+namespace davidxu\admin\controllers;
 
-use mdm\admin\components\ItemController;
+use davidxu\admin\components\ItemController;
 use yii\rbac\Item;
 
 /**
@@ -19,7 +19,7 @@ class PermissionController extends ItemController
      */
     public function labels()
     {
-        return[
+        return [
             'Item' => 'Permission',
             'Items' => 'Permissions',
         ];

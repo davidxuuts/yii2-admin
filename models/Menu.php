@@ -1,22 +1,28 @@
 <?php
 
-namespace mdm\admin\models;
+namespace davidxu\admin\models;
 
 use Yii;
-use mdm\admin\components\Configs;
+use davidxu\admin\components\Configs;
+use yii\db\ActiveQuery;
 use yii\db\Query;
+use davidxu\admin\models\MenuCate;
 
 /**
  * This is the model class for table "menu".
  *
  * @property integer $id Menu id(autoincrement)
+ * @property integer $cate_id Menu category
  * @property string $name Menu name
  * @property integer $parent Menu parent
  * @property string $route Route for this menu
  * @property integer $order Menu order
  * @property string $data Extra information for this menu
  *
+ * @property string $parent_name Parent name
+ *
  * @property Menu $menuParent Menu parent
+ * @property Cate $cate Menu category
  * @property Menu[] $menus Menu children
  *
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
@@ -52,18 +58,26 @@ class Menu extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['name'], 'required'],
+            [['cate_id', 'order'], 'integer'],
+            [['name', 'cate_id'], 'required'],
             [['parent_name'], 'in',
                 'range' => static::find()->select(['name'])->column(),
-                'message' => 'Menu "{value}" not found.'],
-            [['parent', 'route', 'data', 'order'], 'default'],
+                'message' => Yii::t('rbac-admin', 'Menu "{value}" not found.')],
+            [['parent', 'route', 'order', 'data'], 'default'],
             [['parent'], 'filterParent', 'when' => function() {
                 return !$this->isNewRecord;
             }],
-            [['order'], 'integer'],
+            [['name'], 'string', 'max' => 128],
+            [['route'], 'string', 'max' => 255],
+            [['data'], 'string'],
+            [
+                ['cate_id'], 'exist', 'skipOnError' => true,
+                'targetClass' => MenuCate::class,
+                'targetAttribute' => ['cate_id' => 'id']
+            ],
             [['route'], 'in',
                 'range' => static::getSavedRoutes(),
-                'message' => 'Route "{value}" not found.']
+                'message' => Yii::t('rbac-admin','Route "{value}" not found.')],
         ];
     }
 
@@ -93,6 +107,7 @@ class Menu extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('rbac-admin', 'ID'),
+            'cate_id' => Yii::t('rbac-admin', 'Menu category'),
             'name' => Yii::t('rbac-admin', 'Name'),
             'parent' => Yii::t('rbac-admin', 'Parent'),
             'parent_name' => Yii::t('rbac-admin', 'Parent Name'),
@@ -108,7 +123,7 @@ class Menu extends \yii\db\ActiveRecord
      */
     public function getMenuParent()
     {
-        return $this->hasOne(Menu::className(), ['id' => 'parent']);
+        return $this->hasOne(Menu::class, ['id' => 'parent']);
     }
 
     /**
@@ -117,7 +132,7 @@ class Menu extends \yii\db\ActiveRecord
      */
     public function getMenus()
     {
-        return $this->hasMany(Menu::className(), ['parent' => 'id']);
+        return $this->hasMany(Menu::class, ['parent' => 'id']);
     }
     private static $_routes;
 
@@ -146,5 +161,15 @@ class Menu extends \yii\db\ActiveRecord
                 ->from(['m' => $tableName])
                 ->leftJoin(['p' => $tableName], '[[m.parent]]=[[p.id]]')
                 ->all(static::getDb());
+    }
+
+    /**
+     * Gets query for [[Cate]].
+     *
+     * @return ActiveQuery
+     */
+    public function getCate(): ActiveQuery
+    {
+        return $this->hasOne(MenuCate::class, ['id' => 'cate_id']);
     }
 }

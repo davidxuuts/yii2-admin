@@ -1,4 +1,4 @@
-.glyphicon-refresh-animate {
+.fa-spin {
     -animation: spin .7s infinite linear;
     -ms-animation: spin .7s infinite linear;
     -webkit-animation: spinw .7s infinite linear;

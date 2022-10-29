@@ -1,10 +1,11 @@
 <?php
 
-namespace mdm\admin\controllers;
+namespace davidxu\admin\controllers;
 
 use Yii;
-use mdm\admin\models\Assignment;
-use mdm\admin\models\searchs\Assignment as AssignmentSearch;
+use davidxu\admin\models\Assignment;
+use davidxu\admin\models\searchs\Assignment as AssignmentSearch;
+use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
@@ -32,7 +33,7 @@ class AssignmentController extends Controller
         parent::init();
         if ($this->userClassName === null) {
             $this->userClassName = Yii::$app->getUser()->identityClass;
-            $this->userClassName = $this->userClassName ? : 'mdm\admin\models\User';
+            $this->userClassName = $this->userClassName ? : 'davidxu\admin\models\User';
         }
     }
 
@@ -58,22 +59,22 @@ class AssignmentController extends Controller
      */
     public function actionIndex()
     {
-
-        if ($this->searchClass === null) {
-            $searchModel = new AssignmentSearch;
-            $dataProvider = $searchModel->search(Yii::$app->getRequest()->getQueryParams(), $this->userClassName, $this->usernameField);
-        } else {
-            $class = $this->searchClass;
-            $searchModel = new $class;
-            $dataProvider = $searchModel->search(Yii::$app->getRequest()->getQueryParams());
+        $query = $this->userClassName::find();
+        $key = trim(Yii::$app->request->get('key'));
+        if ($key) {
+            $query->andFilterWhere([
+                'like', $this->usernameField, $key
+            ]);
         }
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+        ]);
 
-        return $this->render('index', [
-                'dataProvider' => $dataProvider,
-                'searchModel' => $searchModel,
-                'idField' => $this->idField,
-                'usernameField' => $this->usernameField,
-                'extraColumns' => $this->extraColumns,
+        return $this->render($this->action->id, [
+            'dataProvider' => $dataProvider,
+            'idField' => $this->idField,
+            'usernameField' => $this->usernameField,
+            'extraColumns' => $this->extraColumns,
         ]);
     }
 
@@ -104,7 +105,7 @@ class AssignmentController extends Controller
         $items = Yii::$app->getRequest()->post('items', []);
         $model = new Assignment($id);
         $success = $model->assign($items);
-        Yii::$app->getResponse()->format = 'json';
+        Yii::$app->response->format = 'json';
         return array_merge($model->getItems(), ['success' => $success]);
     }
 

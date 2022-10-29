@@ -1,11 +1,11 @@
 <?php
 
-namespace mdm\admin\models\searchs;
+namespace davidxu\admin\models\searchs;
 
 use Yii;
 use yii\base\Model;
 use yii\data\ArrayDataProvider;
-use mdm\admin\components\Configs;
+use davidxu\admin\components\Configs;
 use yii\rbac\Item;
 
 /**
@@ -60,11 +60,12 @@ class AuthItem extends Model
         /* @var \yii\rbac\Manager $authManager */
         $authManager = Configs::authManager();
         $advanced = Configs::instance()->advanced;
-        if ($this->type == Item::TYPE_ROLE) {
+        $type = (int)($this->type);
+        if ($type === Item::TYPE_ROLE) {
             $items = $authManager->getRoles();
         } else {
             $items = array_filter($authManager->getPermissions(), function($item) use ($advanced){
-              $isPermission = $this->type == Item::TYPE_PERMISSION;
+              $isPermission = $type === Item::TYPE_PERMISSION;
               if ($advanced) {
                 return $isPermission xor (strncmp($item->name, '/', 1) === 0 or strncmp($item->name, '@', 1) === 0);
               }
@@ -75,9 +76,8 @@ class AuthItem extends Model
         }
         $this->load($params);
         if ($this->validate()) {
-
-            $search = mb_strtolower(trim((string)$this->name));
-            $desc = mb_strtolower(trim((string)$this->description));
+            $search = mb_strtolower(trim($this->name));
+            $desc = mb_strtolower(trim($this->description));
             $ruleName = $this->ruleName;
             foreach ($items as $name => $item) {
                 $f = (empty($search) || mb_strpos(mb_strtolower($item->name), $search) !== false) &&

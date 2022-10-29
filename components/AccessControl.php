@@ -1,6 +1,6 @@
 <?php
 
-namespace mdm\admin\components;
+namespace davidxu\admin\components;
 
 use yii\web\ForbiddenHttpException;
 use yii\base\Module;
@@ -18,7 +18,7 @@ use yii\di\Instance;
  *
  * ```
  * 'as access' => [
- *     'class' => 'mdm\admin\components\AccessControl',
+ *     'class' => 'davidxu\admin\components\AccessControl',
  *     'allowActions' => ['site/login', 'site/error']
  * ]
  * ```
@@ -108,7 +108,7 @@ class AccessControl extends \yii\base\ActionFilter
                 }else if(is_string($user->loginUrl)){
                     $loginUrl = $user->loginUrl;
                 }
-                if(!is_null($loginUrl) && trim((string)$loginUrl,'/') === $uniqueId)
+                if(!is_null($loginUrl) && trim($loginUrl,'/') === $uniqueId)
                 {
                     return false;
                 }
@@ -127,7 +127,7 @@ class AccessControl extends \yii\base\ActionFilter
 
         foreach ($this->allowActions as $route) {
             if (substr($route, -1) === '*') {
-                $route = rtrim((string)$route, "*");
+                $route = rtrim($route, "*");
                 if ($route === '' || strpos($id, $route) === 0) {
                     return false;
                 }

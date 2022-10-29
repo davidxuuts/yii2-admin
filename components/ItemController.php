@@ -1,10 +1,11 @@
 <?php
 
-namespace mdm\admin\components;
+namespace davidxu\admin\components;
 
 use Yii;
-use mdm\admin\models\AuthItem;
-use mdm\admin\models\searchs\AuthItem as AuthItemSearch;
+use davidxu\admin\models\AuthItem;
+use davidxu\admin\models\searchs\AuthItem as AuthItemSearch;
+use yii\data\ActiveDataProvider;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\base\NotSupportedException;
@@ -30,7 +31,7 @@ class ItemController extends Controller
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                     'assign' => ['post'],
@@ -46,6 +47,29 @@ class ItemController extends Controller
      */
     public function actionIndex()
     {
+//        $key = trim(Yii::$app->request->get('key'));
+//        if ($key) {
+//            $query->from(['m' => $this->modelClass::tableName()])
+//                ->andFilterWhere([
+//                    'or',
+//                    ['like', 'm.name', $key],
+//                    ['like', 'm.route', $key],
+//                    ['like', 'p.name', $key],
+//                ])
+//                ->joinWith(['menuParent p']);
+//        }
+
+//        $dataProvider = new ActiveDataProvider([
+//            'query' => $query,
+//            'pagination' => false,
+//            'sort' => [
+//                'defaultOrder' => [
+//                    'parent' => SORT_ASC,
+//                    'order' => SORT_ASC,
+//                    'id' => SORT_ASC,
+//                ],
+//            ],
+//        ]);
         $searchModel = new AuthItemSearch(['type' => $this->type]);
         $dataProvider = $searchModel->search(Yii::$app->request->getQueryParams());
 

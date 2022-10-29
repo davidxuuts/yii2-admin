@@ -1,17 +1,17 @@
 <?php
 
-namespace mdm\admin\components;
+namespace davidxu\admin\components;
 
 use Yii;
 use yii\caching\TagDependency;
-use mdm\admin\models\Menu;
+use davidxu\admin\models\Menu;
 
 /**
  * MenuHelper used to generate menu depend of user role.
  * Usage
  * 
  * ```
- * use mdm\admin\components\MenuHelper;
+ * use davidxu\admin\components\MenuHelper;
  * use yii\bootstrap\Nav;
  *
  * echo Nav::widget([
@@ -125,7 +125,6 @@ class MenuHelper
                 ]));
             }
         }
-
         $key = [__METHOD__, $assigned, $root];
         if ($refresh || $callback !== null || $cache === null || (($result = $cache->get($key)) === false)) {
             $result = static::normalizeMenu($assigned, $menus, $callback, $root);
@@ -150,12 +149,11 @@ class MenuHelper
         $l = count($assigned);
         for ($i = 0; $i < $l; $i++) {
             $id = $assigned[$i];
-            $parent_id = $menus[$id]['parent'];
-            if ($parent_id !== null && !in_array($parent_id, $assigned)) {
+            $parent_id = isset($menus[$id]['parent']) ? $menus[$id]['parent'] : null;
+            if ($parent_id !== null && (int)$parent_id !== 0 && !in_array($parent_id, $assigned)) {
                 $assigned[$l++] = $parent_id;
             }
         }
-
         return $assigned;
     }
 
@@ -196,7 +194,7 @@ class MenuHelper
         $order = [];
         foreach ($assigned as $id) {
             $menu = $menus[$id];
-            if ($menu['parent'] == $parent) {
+            if ($menu['parent'] === $parent) {
                 $menu['children'] = static::normalizeMenu($assigned, $menus, $callback, $id);
                 if ($callback !== null) {
                     $item = call_user_func($callback, $menu);

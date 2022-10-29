@@ -1,14 +1,19 @@
 <?php
 
-namespace mdm\admin\controllers;
+namespace davidxu\admin\controllers;
 
+use davidxu\base\enums\StatusEnum;
+use davidxu\admin\components\BaseController;
+use yii\db\ActiveRecord;
+use yii\helpers\ArrayHelper;
+use davidxu\admin\models\MenuCate;
 use Yii;
-use mdm\admin\models\Menu;
-use mdm\admin\models\searchs\Menu as MenuSearch;
-use yii\web\Controller;
+use davidxu\admin\models\Menu;
+use yii\data\ActiveDataProvider;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
-use mdm\admin\components\Helper;
+use davidxu\admin\components\Helper;
+use yii\web\Response;
 
 /**
  * MenuController implements the CRUD actions for Menu model.
@@ -16,17 +21,18 @@ use mdm\admin\components\Helper;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class MenuController extends Controller
+class MenuController extends BaseController
 {
+    public $modelClass = Menu::class;
 
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                 ],
@@ -38,26 +44,34 @@ class MenuController extends Controller
      * Lists all Menu models.
      * @return mixed
      */
-    public function actionIndex()
+    public function actionIndex(): string
     {
-        $searchModel = new MenuSearch;
-        $dataProvider = $searchModel->search(Yii::$app->request->getQueryParams());
+        $query = $this->modelClass::find();
+        $key = trim(Yii::$app->request->get('key'));
+        if ($key) {
+            $query->from(['m' => $this->modelClass::tableName()])
+                ->andFilterWhere([
+                'or',
+                ['like', 'm.name', $key],
+                ['like', 'm.route', $key],
+                ['like', 'p.name', $key],
+            ])
+                ->joinWith(['menuParent p']);
+        }
+
+        $dataProvider = new ActiveDataProvider([
+            'query' => $query,
+            'sort' => [
+                'defaultOrder' => [
+                    'parent' => SORT_ASC,
+                    'order' => SORT_ASC,
+                    'id' => SORT_ASC,
+                ],
+            ],
+        ]);
 
         return $this->render('index', [
                 'dataProvider' => $dataProvider,
-                'searchModel' => $searchModel,
-        ]);
-    }
-
-    /**
-     * Displays a single Menu model.
-     * @param  integer $id
-     * @return mixed
-     */
-    public function actionView($id)
-    {
-        return $this->render('view', [
-                'model' => $this->findModel($id),
         ]);
     }
 
@@ -72,10 +86,11 @@ class MenuController extends Controller
 
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Helper::invalidate();
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->message(Yii::t('app', 'Saved successfully'), $this->redirect(['index']));
         } else {
             return $this->render('create', [
-                    'model' => $model,
+                'model' => $model,
+                'menuCateDropdownList' => $this->getMenuCateDropdownList(),
             ]);
         }
     }
@@ -94,10 +109,11 @@ class MenuController extends Controller
         }
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Helper::invalidate();
-            return $this->redirect(['view', 'id' => $model->id]);
+            return $this->message(Yii::t('rbac-admin', 'Saved successfully'), $this->redirect(['index']));
         } else {
             return $this->render('update', [
-                    'model' => $model,
+                'model' => $model,
+                'menuCateDropdownList' => $this->getMenuCateDropdownList(),
             ]);
         }
     }
@@ -113,22 +129,33 @@ class MenuController extends Controller
         $this->findModel($id)->delete();
         Helper::invalidate();
 
-        return $this->redirect(['index']);
+        return $this->message(Yii::t('app', 'Deleted successfully'), $this->redirect(['index']));
     }
+//
+//    /**
+//     * Finds the Menu model based on its primary key value.
+//     * If the model is not found, a 404 HTTP exception will be thrown.
+//     * @param int|null $id
+//     * @return ActiveRecord
+//     * @throws NotFoundHttpException if the model cannot be found
+//     */
+//    protected function findModel($id): ActiveRecord
+//    {
+//        if (($model = Menu::findOne($id)) !== null) {
+//            return $model;
+//        } else {
+//            throw new NotFoundHttpException('The requested page does not exist.');
+//        }
+//    }
 
-    /**
-     * Finds the Menu model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param  integer $id
-     * @return Menu the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
-     */
-    protected function findModel($id)
+    protected function getMenuCateDropdownList()
     {
-        if (($model = Menu::findOne($id)) !== null) {
-            return $model;
-        } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
-        }
+        $list = MenuCate::find()
+            ->select(['id', 'title'])
+            ->where(['status' => StatusEnum::ENABLED])
+            ->orderBy(['id' => SORT_ASC])
+            ->asArray()
+            ->all();
+        return ArrayHelper::map($list, 'id', 'title');
     }
 }
