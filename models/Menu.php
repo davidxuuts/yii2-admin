@@ -12,7 +12,6 @@ use davidxu\admin\models\MenuCate;
  * This is the model class for table "menu".
  *
  * @property integer $id Menu id(autoincrement)
- * @property integer $cate_id Menu category
  * @property string $name Menu name
  * @property integer $parent Menu parent
  * @property string $route Route for this menu
@@ -22,7 +21,6 @@ use davidxu\admin\models\MenuCate;
  * @property string $parent_name Parent name
  *
  * @property Menu $menuParent Menu parent
- * @property Cate $cate Menu category
  * @property Menu[] $menus Menu children
  *
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
@@ -58,8 +56,8 @@ class Menu extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['cate_id', 'order'], 'integer'],
-            [['name', 'cate_id'], 'required'],
+            [['order'], 'integer'],
+            [['name'], 'required'],
             [['parent_name'], 'in',
                 'range' => static::find()->select(['name'])->column(),
                 'message' => Yii::t('rbac-admin', 'Menu "{value}" not found.')],
@@ -70,11 +68,6 @@ class Menu extends \yii\db\ActiveRecord
             [['name'], 'string', 'max' => 128],
             [['route'], 'string', 'max' => 255],
             [['data'], 'string'],
-            [
-                ['cate_id'], 'exist', 'skipOnError' => true,
-                'targetClass' => MenuCate::class,
-                'targetAttribute' => ['cate_id' => 'id']
-            ],
             [['route'], 'in',
                 'range' => static::getSavedRoutes(),
                 'message' => Yii::t('rbac-admin','Route "{value}" not found.')],
@@ -107,13 +100,12 @@ class Menu extends \yii\db\ActiveRecord
     {
         return [
             'id' => Yii::t('rbac-admin', 'ID'),
-            'cate_id' => Yii::t('rbac-admin', 'Menu category'),
             'name' => Yii::t('rbac-admin', 'Name'),
             'parent' => Yii::t('rbac-admin', 'Parent'),
             'parent_name' => Yii::t('rbac-admin', 'Parent Name'),
             'route' => Yii::t('rbac-admin', 'Route'),
             'order' => Yii::t('rbac-admin', 'Order'),
-            'data' => Yii::t('rbac-admin', 'Data'),
+            'data' => Yii::t('rbac-admin', 'Icon'),
         ];
     }
 
@@ -161,15 +153,5 @@ class Menu extends \yii\db\ActiveRecord
                 ->from(['m' => $tableName])
                 ->leftJoin(['p' => $tableName], '[[m.parent]]=[[p.id]]')
                 ->all(static::getDb());
-    }
-
-    /**
-     * Gets query for [[Cate]].
-     *
-     * @return ActiveQuery
-     */
-    public function getCate(): ActiveQuery
-    {
-        return $this->hasOne(MenuCate::class, ['id' => 'cate_id']);
     }
 }

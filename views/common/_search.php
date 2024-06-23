@@ -13,11 +13,9 @@ use yii\helpers\Html;
                     'class' => 'form-control input-sm input-sm-2',
                     'placeholder' => $placeholder
                 ])?>
-                <span class="input-group-append">
-                    <?= Html::submitButton('<i class="fas fa-search"></i>', [
-                        'class' => 'btn btn-sm btn-default btn-flat'
-                    ]) ?>
-                </span>
+                <?= Html::submitButton('<i class="b bi-search"></i>', [
+                    'class' => 'btn btn-sm btn-secondary'
+                ]) ?>
             </div>
         <?= Html::endForm() ?>
     </div>

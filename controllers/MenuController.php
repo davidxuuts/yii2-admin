@@ -2,43 +2,29 @@
 
 namespace davidxu\admin\controllers;
 
-use davidxu\base\enums\StatusEnum;
-use davidxu\admin\components\BaseController;
+use davidxu\adminlte4\helpers\ActionHelper;
+use yii\base\ExitException;
+use yii\base\Model;
 use yii\db\ActiveRecord;
+use yii\db\ActiveRecordInterface;
 use yii\helpers\ArrayHelper;
-use davidxu\admin\models\MenuCate;
 use Yii;
 use davidxu\admin\models\Menu;
 use yii\data\ActiveDataProvider;
-use yii\web\NotFoundHttpException;
-use yii\filters\VerbFilter;
+use yii\web\BadRequestHttpException;
+use yii\web\Controller;
 use davidxu\admin\components\Helper;
-use yii\web\Response;
+
 
 /**
  * MenuController implements the CRUD actions for Menu model.
  *
- * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 1.0
  */
-class MenuController extends BaseController
+class MenuController extends Controller
 {
-    public $modelClass = Menu::class;
-
-    /**
-     * @inheritdoc
-     */
-    public function behaviors(): array
-    {
-        return [
-            'verbs' => [
-                'class' => VerbFilter::class,
-                'actions' => [
-                    'delete' => ['post'],
-                ],
-            ],
-        ];
-    }
+    public string|Menu $modelClass = Menu::class;
 
     /**
      * Lists all Menu models.
@@ -46,116 +32,99 @@ class MenuController extends BaseController
      */
     public function actionIndex(): string
     {
-        $query = $this->modelClass::find();
-        $key = trim(Yii::$app->request->get('key'));
-        if ($key) {
-            $query->from(['m' => $this->modelClass::tableName()])
-                ->andFilterWhere([
-                'or',
-                ['like', 'm.name', $key],
-                ['like', 'm.route', $key],
-                ['like', 'p.name', $key],
-            ])
-                ->joinWith(['menuParent p']);
-        }
-
         $dataProvider = new ActiveDataProvider([
-            'query' => $query,
-            'sort' => [
-                'defaultOrder' => [
-                    'parent' => SORT_ASC,
-                    'order' => SORT_ASC,
-                    'id' => SORT_ASC,
-                ],
-            ],
+            'query' => $this->modelClass::find()
+                ->orderBy(['order' => SORT_ASC]),
+            'pagination' => false,
         ]);
 
-        return $this->render('index', [
-                'dataProvider' => $dataProvider,
+        return $this->render($this->action->id, [
+            'dataProvider' => $dataProvider
         ]);
     }
 
     /**
-     * Creates a new Menu model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
+     * @throws ExitException
+     * @throws BadRequestHttpException
      */
-    public function actionCreate()
+    public function actionAjaxEdit()
     {
-        $model = new Menu;
+        $id = Yii::$app->request->get('id', 0);
+        $routes  = Menu::getSavedRoutes();
+        $data = [];
+        if (count($routes) > 1) {
+            foreach ($routes as $route) {
+                $data[$route] = $route;
+            }
+        }
+        /** @var Menu $model */
+        $model = $this->findMenuModel($id, $this->modelClass);
+        if ($model->isNewRecord && ($parent = Yii::$app->request->get('parent')) > 0) {
+            $model->parent = $parent;
+            /** @var Menu $modelParent */
+            $modelParent = $this->findMenuModel($parent, $this->modelClass);
+        }
+        ActionHelper::activeFormValidate($model);
+        if ($model->load(Yii::$app->request->post())) {
+            if ($model->save()) {
+                Helper::invalidate();
+                return ActionHelper::message(Yii::t('adminlte4', 'Saved successfully'),
+                    $this->redirect(Yii::$app->request->referrer));
+            }
+            return ActionHelper::message(ActionHelper::getError($model),
+                $this->redirect(Yii::$app->request->referrer), 'error');
+        }
 
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Helper::invalidate();
-            return $this->message(Yii::t('app', 'Saved successfully'), $this->redirect(['index']));
-        } else {
-            return $this->render('create', [
-                'model' => $model,
-                'menuCateDropdownList' => $this->getMenuCateDropdownList(),
-            ]);
-        }
-    }
-
-    /**
-     * Updates an existing Menu model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param  integer $id
-     * @return mixed
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-        if ($model->menuParent) {
-            $model->parent_name = $model->menuParent->name;
-        }
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Helper::invalidate();
-            return $this->message(Yii::t('rbac-admin', 'Saved successfully'), $this->redirect(['index']));
-        } else {
-            return $this->render('update', [
-                'model' => $model,
-                'menuCateDropdownList' => $this->getMenuCateDropdownList(),
-            ]);
-        }
+        return $this->renderAjax($this->action->id, [
+            'model' => $model,
+            'data' => $data,
+        ]);
     }
 
     /**
      * Deletes an existing Menu model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param  integer $id
+     * @param integer $id
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDelete(int $id): mixed
     {
-        $this->findModel($id)->delete();
+        $this->findMenuModel($id)->delete();
         Helper::invalidate();
 
-        return $this->message(Yii::t('app', 'Deleted successfully'), $this->redirect(['index']));
+        return ActionHelper::message(Yii::t('app', 'Deleted successfully'), $this->redirect(['index']));
     }
-//
-//    /**
-//     * Finds the Menu model based on its primary key value.
-//     * If the model is not found, a 404 HTTP exception will be thrown.
-//     * @param int|null $id
-//     * @return ActiveRecord
-//     * @throws NotFoundHttpException if the model cannot be found
-//     */
-//    protected function findModel($id): ActiveRecord
-//    {
-//        if (($model = Menu::findOne($id)) !== null) {
-//            return $model;
-//        } else {
-//            throw new NotFoundHttpException('The requested page does not exist.');
-//        }
-//    }
 
-    protected function getMenuCateDropdownList()
+    /**
+     * @param int|string|null $id
+     * @param string|ActiveRecordInterface $modelClass
+     * @return ActiveRecordInterface|ActiveRecord|Model|Menu
+     * @throws BadRequestHttpException
+     */
+    protected function findMenuModel(int|string|null $id,
+                                 string|ActiveRecordInterface $modelClass = Menu::class
+    ): ActiveRecordInterface|ActiveRecord|Model|Menu
     {
-        $list = MenuCate::find()
-            ->select(['id', 'title'])
-            ->where(['status' => StatusEnum::ENABLED])
-            ->orderBy(['id' => SORT_ASC])
-            ->asArray()
-            ->all();
-        return ArrayHelper::map($list, 'id', 'title');
+        /* @var $modelClass ActiveRecordInterface|Model|ActiveRecord */
+        if (!$modelClass) {
+            throw new BadRequestHttpException('No modelClass found.');
+        }
+        $keys = $modelClass::primaryKey();
+        if (count($keys) > 1) {
+            $values = explode(',', $id);
+            if (count($keys) === count($values)) {
+                $model = $modelClass::findOne(array_combine($keys, $values));
+            }
+        } elseif ($id !== null) {
+            $model = $modelClass::findOne($id);
+        } elseif ($modelClass::findOne($id) === null) {
+            $model = new $modelClass;
+        }
+
+        if (!isset($model)) {
+            $model = new $modelClass;
+        }
+        $model->loadDefaultValues();
+        return $model;
     }
 }

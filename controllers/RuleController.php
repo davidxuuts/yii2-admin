@@ -2,19 +2,19 @@
 
 namespace davidxu\admin\controllers;
 
+use davidxu\adminlte4\helpers\ActionHelper;
 use Yii;
 use davidxu\admin\models\BizRule;
 use yii\web\Controller;
 use davidxu\admin\models\searchs\BizRule as BizRuleSearch;
 use yii\filters\VerbFilter;
-use yii\web\NotFoundHttpException;
 use davidxu\admin\components\Helper;
 use davidxu\admin\components\Configs;
 
 /**
  * Description of RuleController
  *
- * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 1.0
  */
 class RuleController extends Controller
@@ -23,11 +23,11 @@ class RuleController extends Controller
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'delete' => ['post'],
                 ],
@@ -36,10 +36,10 @@ class RuleController extends Controller
     }
 
     /**
-     * Lists all AuthItem models.
-     * @return mixed
+     * Lists all BizRule models.
+     * @return string
      */
-    public function actionIndex()
+    public function actionIndex(): string
     {
         $searchModel = new BizRuleSearch();
         $dataProvider = $searchModel->search(Yii::$app->request->getQueryParams());
@@ -50,82 +50,51 @@ class RuleController extends Controller
         ]);
     }
 
-    /**
-     * Displays a single AuthItem model.
-     * @param  string $id
-     * @return mixed
-     */
-    public function actionView($id)
+    public function actionAjaxEdit()
     {
+        $id = Yii::$app->request->get('id', null);
         $model = $this->findModel($id);
-
-        return $this->render('view', ['model' => $model]);
-    }
-
-    /**
-     * Creates a new AuthItem model.
-     * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
-     */
-    public function actionCreate()
-    {
-        $model = new BizRule(null);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Helper::invalidate();
-
-            return $this->redirect(['view', 'id' => $model->name]);
+            return ActionHelper::message(
+                Yii::t('rbac-admin', 'Saved successfully'),
+                $this->redirect(['index'])
+            );
         } else {
-            return $this->render('create', ['model' => $model,]);
+            return $this->renderAjax($this->action->id, ['model' => $model]);
         }
     }
 
     /**
-     * Updates an existing AuthItem model.
-     * If update is successful, the browser will be redirected to the 'view' page.
-     * @param  string $id
-     * @return mixed
-     */
-    public function actionUpdate($id)
-    {
-        $model = $this->findModel($id);
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Helper::invalidate();
-
-            return $this->redirect(['view', 'id' => $model->name]);
-        }
-
-        return $this->render('update', ['model' => $model,]);
-    }
-
-    /**
-     * Deletes an existing AuthItem model.
+     * Deletes an existing BizRule model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param  string $id
+     * @param string $id
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDelete(string $id)
     {
         $model = $this->findModel($id);
         Configs::authManager()->remove($model->item);
         Helper::invalidate();
+        return ActionHelper::message(Yii::t('rbac-admin', 'Deleted successfully'), $this->redirect(['index']));
 
-        return $this->redirect(['index']);
+//        return $this->redirect(['index']);
     }
 
     /**
-     * Finds the AuthItem model based on its primary key value.
-     * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param  string        $id
-     * @return AuthItem      the loaded model
-     * @throws HttpException if the model cannot be found
+     * Finds the BizRule model based on its primary key value.
+     * @param  ?string $id
+     * @return BizRule  the loaded model
      */
-    protected function findModel($id)
+    protected function findModel(string $id = null): BizRule
     {
-        $item = Configs::authManager()->getRule($id);
-        if ($item) {
-            return new BizRule($item);
-        } else {
-            throw new NotFoundHttpException('The requested page does not exist.');
+        if (!empty($id)) {
+            $item = Configs::authManager()->getRule($id);
+            if ($item) {
+                return new BizRule($item);
+            }
+            return new BizRule(null);
         }
+        return new BizRule(null);
     }
 }

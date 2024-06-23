@@ -38,7 +38,7 @@ $('.btn-assign').click(function () {
 });
 
 $('#btn-refresh').click(function () {
-    var $icon = $(this).children('i .fas');
+    var $icon = $(this).children('i .bi');
     $icon.addClass('fa-spin');
     $.post($(this).attr('href'), function (r) {
         updateRoutes(r);

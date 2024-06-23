@@ -2,7 +2,9 @@
 
 namespace davidxu\admin\models;
 
+use Exception;
 use Yii;
+use yii\base\Model;
 use yii\rbac\Rule;
 use davidxu\admin\components\Configs;
 
@@ -12,7 +14,7 @@ use davidxu\admin\components\Configs;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class BizRule extends \yii\base\Model
+class BizRule extends Model
 {
     /**
      * @var string name of the rule
@@ -41,10 +43,10 @@ class BizRule extends \yii\base\Model
 
     /**
      * Initialize object
-     * @param \yii\rbac\Rule $item
+     * @param ?Rule $item
      * @param array $config
      */
-    public function __construct($item, $config = [])
+    public function __construct($item = null, array $config = [])
     {
         $this->_item = $item;
         if ($item !== null) {
@@ -57,7 +59,7 @@ class BizRule extends \yii\base\Model
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['name', 'className'], 'required'],
@@ -76,7 +78,7 @@ class BizRule extends \yii\base\Model
             $this->addError('className', $message);
             return;
         }
-        if (!is_subclass_of($this->className, Rule::className())) {
+        if (!is_subclass_of($this->className, Rule::class)) {
             $message = Yii::t('rbac-admin', "'{class}' must extend from 'yii\rbac\Rule' or its child class", [
                     'class' => $this->className]);
             $this->addError('className', $message);
@@ -86,7 +88,7 @@ class BizRule extends \yii\base\Model
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'name' => Yii::t('rbac-admin', 'Name'),
@@ -98,17 +100,17 @@ class BizRule extends \yii\base\Model
      * Check if new record.
      * @return boolean
      */
-    public function getIsNewRecord()
+    public function getIsNewRecord(): bool
     {
         return $this->_item === null;
     }
 
     /**
      * Find model by id
-     * @param type $id
+     * @param string $id
      * @return null|static
      */
-    public static function find($id)
+    public static function find(string $id): ?BizRule
     {
         $item = Configs::authManager()->getRule($id);
         if ($item !== null) {
@@ -121,8 +123,9 @@ class BizRule extends \yii\base\Model
     /**
      * Save model to authManager
      * @return boolean
+     * @throws Exception
      */
-    public function save()
+    public function save(): bool
     {
         if ($this->validate()) {
             $manager = Configs::authManager();
@@ -141,7 +144,6 @@ class BizRule extends \yii\base\Model
             } else {
                 $manager->update($oldName, $this->_item);
             }
-
             return true;
         } else {
             return false;
@@ -150,9 +152,9 @@ class BizRule extends \yii\base\Model
 
     /**
      * Get item
-     * @return Item
+     * @return Rule
      */
-    public function getItem()
+    public function getItem(): ?Rule
     {
         return $this->_item;
     }

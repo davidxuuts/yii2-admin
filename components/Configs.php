@@ -2,7 +2,10 @@
 
 namespace davidxu\admin\components;
 
+use davidxu\admin\BaseObject;
+use Exception;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\caching\Cache;
 use yii\db\Connection;
 use yii\di\Instance;
@@ -40,69 +43,69 @@ use yii\rbac\ManagerInterface;
  * @since 1.0
  */
 
-class Configs extends \davidxu\admin\BaseObject
+class Configs extends BaseObject
 {
     const CACHE_TAG = 'davidxu.admin';
 
     /**
-     * @var ManagerInterface .
+     * @var ManagerInterface|string .
      */
-    public $authManager = 'authManager';
+    public ManagerInterface|string $authManager = 'authManager';
 
     /**
-     * @var Connection Database connection.
+     * @var Connection|string Database connection.
      */
-    public $db = 'db';
+    public Connection|string $db = 'db';
 
     /**
-     * @var Connection Database connection.
+     * @var Connection|string Database connection.
      */
-    public $userDb = 'db';
+    public Connection|string $userDb = 'db';
 
     /**
-     * @var Cache Cache component.
+     * @var Cache|string Cache component.
      */
-    public $cache = 'cache';
+    public Cache|string $cache = 'cache';
 
     /**
-     * @var integer Cache duration. Default to a hour.
+     * @var integer Cache duration. Default to an hour.
      */
-    public $cacheDuration = 3600;
-
-    /**
-     * @var string Menu table name.
-     */
-    public $menuTable = '{{%menu}}';
+    public int $cacheDuration = 3600;
 
     /**
      * @var string Menu table name.
      */
-    public $userTable = '{{%user}}';
+    public string $menuTable = '{{%menu}}';
+
+    /**
+     * @var string Menu table name.
+     */
+    public string $userTable = '{{%user}}';
 
     /**
      * @var integer Default status user signup. 10 mean active.
      */
-    public $defaultUserStatus = 10;
+    public int $defaultUserStatus = 10;
 
     /**
-     * @var integer Number of user role.
+     * @var integer Number of user role(s).
      */
-    public $userRolePageSize = 100;
+    public int $userRolePageSize = 100;
 
     /**
-     * @var boolean If true then AccessControl only check if route are registered.
+     * @var boolean If true, then AccessControl only check if route is registered.
      */
-    public $onlyRegisteredRoute = false;
+    public bool $onlyRegisteredRoute = false;
 
     /**
-     * @var boolean If false then AccessControl will check without Rule.
+     * @var boolean If false, then AccessControl will check without Rule.
      */
-    public $strict = true;
+    public bool $strict = true;
 
     /**
      * @var array
      */
-    public $options;
+    public array $options = [];
 
     /**
      * @var array|false Used for multiple application
@@ -123,13 +126,13 @@ class Configs extends \davidxu\admin\BaseObject
      * ]
      * ```     *
      */
-    public $advanced;
+    public array|false $advanced;
 
     /**
-     * @var self Instance of self
+     * @var object|null Instance of self
      */
-    private static $_instance;
-    private static $_classes = [
+    private static null|object $_instance = null;
+    private static array $_classes = [
         'db' => 'yii\db\Connection',
         'userDb' => 'yii\db\Connection',
         'cache' => 'yii\caching\Cache',
@@ -139,12 +142,12 @@ class Configs extends \davidxu\admin\BaseObject
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         foreach (self::$_classes as $key => $class) {
             try {
                 $this->{$key} = empty($this->{$key}) ? null : Instance::ensure($this->{$key}, $class);
-            } catch (\Exception $exc) {
+            } catch (Exception $exc) {
                 $this->{$key} = null;
                 Yii::error($exc->getMessage());
             }
@@ -153,22 +156,30 @@ class Configs extends \davidxu\admin\BaseObject
 
     /**
      * Create instance of self
-     * @return static
+     * @return object
+     * @throws InvalidConfigException
+     * @throws Exception
      */
-    public static function instance()
+    public static function instance(): object
     {
         if (self::$_instance === null) {
             $type = ArrayHelper::getValue(Yii::$app->params, 'davidxu.admin.configs', []);
             if (is_array($type) && !isset($type['class'])) {
-                $type['class'] = static::className();
+                $type['class'] = static::class;
             }
 
-            return self::$_instance = Yii::createObject($type);
+            self::$_instance = Yii::createObject($type);
+            return self::$_instance;
         }
-
         return self::$_instance;
     }
 
+    /**
+     * @param $name
+     * @param $arguments
+     * @return mixed|void|null
+     * @throws InvalidConfigException
+     */
     public static function __callStatic($name, $arguments)
     {
         $instance = static::instance();
@@ -184,88 +195,100 @@ class Configs extends \davidxu\admin\BaseObject
     }
 
     /**
-     * @return Connection
+     * @return string|Connection
+     * @throws InvalidConfigException
      */
-    public static function db()
+    public static function db(): string|Connection
     {
         return static::instance()->db;
     }
 
     /**
-     * @return Connection
+     * @return string|Connection
+     * @throws InvalidConfigException
      */
-    public static function userDb()
+    public static function userDb(): string|Connection
     {
         return static::instance()->userDb;
     }
 
     /**
-     * @return Cache
+     * @return Cache|string
+     * @throws InvalidConfigException
      */
-    public static function cache()
+    public static function cache(): Cache|string
     {
         return static::instance()->cache;
     }
 
     /**
-     * @return ManagerInterface
+     * @return ManagerInterface|string
+     * @throws InvalidConfigException
      */
-    public static function authManager()
+    public static function authManager(): ManagerInterface|string
     {
         return static::instance()->authManager;
     }
+
     /**
      * @return integer
+     * @throws InvalidConfigException
      */
-    public static function cacheDuration()
+    public static function cacheDuration(): int
     {
         return static::instance()->cacheDuration;
     }
 
     /**
      * @return string
+     * @throws InvalidConfigException
      */
-    public static function menuTable()
+    public static function menuTable(): string
     {
         return static::instance()->menuTable;
     }
 
     /**
      * @return string
+     * @throws InvalidConfigException
      */
-    public static function userTable()
+    public static function userTable(): string
     {
         return static::instance()->userTable;
     }
 
     /**
-     * @return string
+     * @return int|string
+     * @throws InvalidConfigException
      */
-    public static function defaultUserStatus()
+    public static function defaultUserStatus(): int|string
     {
         return static::instance()->defaultUserStatus;
     }
 
     /**
      * @return boolean
+     * @throws InvalidConfigException
      */
-    public static function onlyRegisteredRoute()
+    public static function onlyRegisteredRoute(): bool
     {
         return static::instance()->onlyRegisteredRoute;
     }
 
     /**
      * @return boolean
+     * @throws InvalidConfigException
      */
-    public static function strict()
+    public static function strict(): bool
     {
         return static::instance()->strict;
     }
 
     /**
      * @return int
+     * @throws InvalidConfigException
      */
-    public static function userRolePageSize()
+    public static function userRolePageSize(): int
     {
         return static::instance()->userRolePageSize;
     }

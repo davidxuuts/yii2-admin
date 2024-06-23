@@ -18,31 +18,29 @@ $opts = Json::htmlEncode([
 ]);
 $this->registerJs("var _opts = {$opts};");
 $this->registerJs($this->render('_script.js'));
-$animateIcon = ' <i class="fas fa-sync-alt fa-spin"></i>';
+$animateIcon = ' <i class="bi bi-arrow-repeat fa-spin"></i>';
 ?>
 <div class="admin-route-index card card-outline card-secondary">
     <div class="card-header">
         <h4 class="card-title"><?= Html::encode($this->title); ?> </h4>
     </div>
     <div class="card-body pt-3 pl-0 pr-0">
-        <div class="container">
+        <div class="app-container">
             <div class="input-group mb-3">
                 <?= Html::textInput(null, null, [
                     'id' => 'inp-route',
                     'class' => 'form-control',
                     'placeholder' => Yii::t('rbac-admin', 'New route(s)'),
                 ]) ?>
-                <div class="input-group-append">
-                    <span class="input-group-text">
-                        <?= Html::a(Yii::t('rbac-admin', 'Add') .$animateIcon, ['create'],[
-                            'id' => 'btn-new'
-                        ]) ?>
-                    </span>
-                </div>
+                <span class="input-group-text">
+                    <?= Html::a(Yii::t('rbac-admin', 'Add') . $animateIcon, ['create'], [
+                        'id' => 'btn-new',
+                    ]) ?>
+                </span>
             </div>
             <div class="row">
                 <div class="col-sm-5">
-                    <div class="input-group">
+                    <div class="input-group mb-1">
                         <?= Html::textInput(null, null, [
                             'data-target' => 'available',
                             'class' => 'form-control search',
@@ -50,7 +48,7 @@ $animateIcon = ' <i class="fas fa-sync-alt fa-spin"></i>';
                         ]) ?>
                         <div class="input-group-append">
                             <span class="input-group-text">
-                                <?= Html::a('<i class="fas fa-sync-alt"></i>', ['refresh'],[
+                                <?= Html::a('<i class="bi bi-arrow-repeat"></i>', ['refresh'],[
                                     'id' => 'btn-refresh'
                                 ]) ?>
                             </span>
@@ -73,7 +71,7 @@ $animateIcon = ' <i class="fas fa-sync-alt fa-spin"></i>';
                 </div>
                 <div class="col-sm-5">
                     <?= Html::textInput(null, null, [
-                        'class' => 'form-control search',
+                        'class' => 'form-control search mb-1',
                         'data-target' => 'assigned',
                         'placeholder' => Yii::t('rbac-admin', 'Search for assigned'),
                     ]) ?>

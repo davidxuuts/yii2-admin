@@ -45,7 +45,10 @@ $columns[] = [
                     'columns' => $columns,
                 ]);
             } catch (Exception $e) {
-                echo YII_ENV_PROD ? null : $e->getMessage();
+                if (YII_ENV_DEV) {
+                    echo 'Exception: ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ")\n";
+                    echo $e->getTraceAsString() . "\n";
+                }
             }
             Pjax::end(); ?>
         </div>

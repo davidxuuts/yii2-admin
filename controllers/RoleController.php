@@ -8,7 +8,7 @@ use yii\rbac\Item;
 /**
  * RoleController implements the CRUD actions for AuthItem model.
  *
- * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 1.0
  */
 class RoleController extends ItemController
@@ -16,7 +16,7 @@ class RoleController extends ItemController
     /**
      * @inheritdoc
      */
-    public function labels()
+    public function labels(): array
     {
         return[
             'Item' => 'Role',
@@ -27,7 +27,7 @@ class RoleController extends ItemController
     /**
      * @inheritdoc
      */
-    public function getType()
+    public function getType(): int
     {
         return Item::TYPE_ROLE;
     }

@@ -26,9 +26,11 @@ class RouteRule extends Rule
     public function execute($user, $item, $params)
     {
         $routeParams = isset($item->data['params']) ? $item->data['params'] : [];
-        foreach ($routeParams as $key => $value) {
-            if (!array_key_exists($key, $params) || $params[$key] != $value) {
-                return false;
+        if (count($routeParams)) {
+            foreach ($routeParams as $key => $value) {
+                if (!array_key_exists($key, $params) || $params[$key] != $value) {
+                    return false;
+                }
             }
         }
         return true;

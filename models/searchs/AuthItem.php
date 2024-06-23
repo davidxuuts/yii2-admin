@@ -18,9 +18,9 @@ class AuthItem extends Model
 {
     const TYPE_ROUTE = 101;
 
-    public $name;
+    public string $name = '';
     public $type;
-    public $description;
+    public string $description = '';
     public $ruleName;
     public $data;
 
@@ -64,7 +64,7 @@ class AuthItem extends Model
         if ($type === Item::TYPE_ROLE) {
             $items = $authManager->getRoles();
         } else {
-            $items = array_filter($authManager->getPermissions(), function($item) use ($advanced){
+            $items = array_filter($authManager->getPermissions(), function($item) use ($advanced, $type){
               $isPermission = $type === Item::TYPE_PERMISSION;
               if ($advanced) {
                 return $isPermission xor (strncmp($item->name, '/', 1) === 0 or strncmp($item->name, '@', 1) === 0);
@@ -79,12 +79,14 @@ class AuthItem extends Model
             $search = mb_strtolower(trim($this->name));
             $desc = mb_strtolower(trim($this->description));
             $ruleName = $this->ruleName;
-            foreach ($items as $name => $item) {
-                $f = (empty($search) || mb_strpos(mb_strtolower($item->name), $search) !== false) &&
-                    (empty($desc) || mb_strpos(mb_strtolower($item->description), $desc) !== false) &&
-                    (empty($ruleName) || $item->ruleName == $ruleName);
-                if (!$f) {
-                    unset($items[$name]);
+            if (count($items)) {
+                foreach ($items as $name => $item) {
+                    $f = (empty($search) || mb_strpos(mb_strtolower($item->name), $search) !== false) &&
+                        (empty($desc) || mb_strpos(mb_strtolower($item->description), $desc) !== false) &&
+                        (empty($ruleName) || $item->ruleName == $ruleName);
+                    if (!$f) {
+                        unset($items[$name]);
+                    }
                 }
             }
         }

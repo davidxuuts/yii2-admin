@@ -1,15 +1,20 @@
 <?php
 
+use davidxu\admin\components\ItemController;
+use davidxu\adminlte4\enums\ModalSizeEnum;
+use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
 use yii\grid\GridView;
 use davidxu\admin\components\RouteRule;
 use davidxu\admin\components\Configs;
-use yii\grid\ActionColumn;
+use davidxu\adminlte4\yii\grid\ActionColumn;
+use yii\web\View;
 
-/* @var $this yii\web\View */
-/* @var $dataProvider yii\data\ActiveDataProvider */
-/* @var $searchModel davidxu\admin\models\searchs\AuthItem */
-/* @var $context davidxu\admin\components\ItemController */
+/**
+ * @var $this View
+ * @var $dataProvider ActiveDataProvider
+ * @var $context ItemController
+ */
 
 $context = $this->context;
 $labels = $context->labels();
@@ -25,18 +30,25 @@ unset($rules[RouteRule::RULE_NAME]);
     <div class="card-header">
         <h4 class="card-title"><?= Html::encode($this->title); ?> </h4>
         <div class="card-tools">
-            <?= Html::a('<i class="fas fa-plus-circle"></i> '
+            <?= Html::a('<i class="bi bi-plus-circle-fill"></i> '
                 . Yii::t('rbac-admin', 'Create ' . $labels['Item']),
-                ['create'],
-                ['class' => 'btn btn-xs btn-primary']
+                ['ajax-edit'],
+                [
+                    'class' => 'btn btn-xs btn-primary',
+                    'data-bs-toggle' => 'modal',
+                    'data-bs-target' => '#modal',
+                    'title' => Yii::t('rbac-admin', 'Create ' . $labels['Item']),
+                    'aria-label' => Yii::t('rbac-admin', 'Create ' . $labels['Item']),
+                    'data-bs-modal-class' => ModalSizeEnum::SIZE_LARGE,
+                ]
             ) ?>
         </div>
     </div>
     <div class="card-body pt-3 pl-0 pr-0">
         <div class="container">
-            <?= $this->render('../common/_search', [
-                'placeholder' => Yii::t('rbac-admin', 'Search name/role(permission) name/description')
-            ]) ?>
+<!--            --><?php //= $this->render('../common/_search', [
+//                'placeholder' => Yii::t('rbac-admin', 'Search name/role(permission) name/description')
+//            ]) ?>
             <?php try {
                 echo GridView::widget([
                     'dataProvider' => $dataProvider,
@@ -58,13 +70,16 @@ unset($rules[RouteRule::RULE_NAME]);
                         ],
                         [
                             'class' => ActionColumn::class,
-                            'header' => Yii::t('app', 'Operate'),
-                            'template' => '{view} {update} {delete}',
+                            'header' => Yii::t('rbac-admin', 'Operate'),
+                            'template' => '{view} {ajax-edit} {delete}',
                         ],
                     ],
                 ]);
-            } catch (Exception $e) {
-                echo YII_ENV_PROD ? null : $e->getMessage();
+            } catch (Exception|Throwable $e) {
+                if (YII_ENV_DEV) {
+                    echo 'Exception: ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ")\n";
+                    echo $e->getTraceAsString() . "\n";
+                }
             } ?>
         </div>
     </div>

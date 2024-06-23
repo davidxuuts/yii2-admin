@@ -3,6 +3,7 @@
 use davidxu\admin\AnimateAsset;
 use davidxu\admin\components\ItemController;
 use davidxu\admin\models\AuthItem;
+use davidxu\adminlte4\enums\ModalSizeEnum;
 use yii\helpers\Html;
 use yii\helpers\Json;
 use yii\helpers\Url;
@@ -10,9 +11,11 @@ use yii\web\View;
 use yii\web\YiiAsset;
 use yii\widgets\DetailView;
 
-/* @var $this View */
-/* @var $model AuthItem */
-/* @var $context ItemController */
+/**
+ * @var $this View
+ * @var $model AuthItem
+ * @var $context ItemController
+ */
 
 $context = $this->context;
 $labels = $context->labels();
@@ -27,21 +30,28 @@ $opts = Json::htmlEncode([
         'users' => $model->getUsers(),
         'getUserUrl' => Url::to(['get-users', 'id' => $model->name])
     ]);
+Yii::info($opts);
 $this->registerJs("var _opts = {$opts};");
 $this->registerJs($this->render('_script.js'));
-$animateIcon = ' <i class="fas fa-sync-alt fa-spin"></i>';
+$animateIcon = ' <i class="bi bi-arrow-repeat fa-spin"></i>';
 ?>
 <div class="admin-auth-item-view card card-outline card-secondary">
     <div class="card-header">
-        <div class="row justify-content-md-center">
-            <div class="col text-right">
-                <?= Html::a('<i class="fas fa-pencil-alt"></i> ' . Yii::t('rbac-admin', 'Update'),
-                    ['update', 'id' => $model->name],
-                    ['class' => 'btn btn-sm btn-secondary']
-                ) ?>
+        <div class="row gx-1">
+            <div class="col text-end">
+                <?= Html::a('<i class="bi bi-pencil-square"></i> ' . Yii::t('rbac-admin', 'Edit'),
+                    ['ajax-edit', 'id' => $model->name],
+                    [
+                    'class' => 'btn btn-sm btn-secondary',
+                    'data-bs-toggle' => 'modal',
+                    'data-bs-target' => '#modal',
+                    'title' => Yii::t('rbac-admin', 'Create ' . $labels['Item']),
+                    'aria-label' => Yii::t('rbac-admin', 'Create ' . $labels['Item']),
+                    'data-bs-modal-class' => ModalSizeEnum::SIZE_LARGE,
+                ]) ?>
             </div>
-            <div class="col">
-                <?= Html::a('<i class="fas fa-trash-alt"></i> ' . Yii::t('rbac-admin', 'Delete'),
+            <div class="col text-start">
+                <?= Html::a('<i class="bi bi-trash3"></i> ' . Yii::t('rbac-admin', 'Delete'),
                     ['delete', 'id' => $model->name],
                     [
                         'class' => 'btn btn-sm btn-danger',
@@ -85,7 +95,7 @@ $animateIcon = ' <i class="fas fa-sync-alt fa-spin"></i>';
             <div class="row">
                 <div class="col-sm-5">
                     <?= Html::textInput(null, null, [
-                        'class' => 'form-control search',
+                        'class' => 'form-control search mb-1',
                         'data-target' => 'available',
                         'placeholder' => Yii::t('rbac-admin', 'Search for available'),
                     ]) ?>
@@ -110,7 +120,7 @@ $animateIcon = ' <i class="fas fa-sync-alt fa-spin"></i>';
                 </div>
                 <div class="col-sm-5">
                     <?= Html::textInput(null, null, [
-                        'class' => 'form-control search',
+                        'class' => 'form-control search mb-1',
                         'data-target' => 'assigned',
                         'placeholder' => Yii::t('rbac-admin', 'Search for assigned'),
                     ]) ?>

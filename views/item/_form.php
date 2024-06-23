@@ -1,16 +1,21 @@
 <?php
 
 use yii\helpers\Html;
-use yii\bootstrap4\ActiveForm;
+use yii\bootstrap5\ActiveForm;
 use davidxu\admin\components\RouteRule;
 use davidxu\admin\AutocompleteAsset;
 use yii\helpers\Json;
 use davidxu\admin\components\Configs;
+use yii\web\View;
+use davidxu\admin\models\AuthItem;
+use davidxu\admin\components\ItemController;
 
-/* @var $this yii\web\View */
-/* @var $model davidxu\admin\models\AuthItem */
-/* @var $form yii\bootstrap4\ActiveForm */
-/* @var $context davidxu\admin\components\ItemController */
+/**
+ * @var $this View
+ * @var $model AuthItem
+ * @var $form ActiveForm
+ * @var $context ItemController
+ */
 
 $context = $this->context;
 $labels = $context->labels();
@@ -35,7 +40,7 @@ $this->registerJs($js);
             'id' => 'item-form',
             'fieldConfig' => [
                 'horizontalCssClasses' => [
-                    'label' => 'col-sm-3 text-right',
+                    'label' => 'col-sm-3 text-end',
                     'offset' => 'offset-sm-3',
                     'wrapper' => 'col-sm-9',
                 ],
@@ -49,8 +54,8 @@ $this->registerJs($js);
                 <?= $form->field($model, 'data')->textarea(['rows' => 6]) ?>
             </div>
         </div>
-        <div class="card-footer text-right">
-            <?= Html::submitButton('<i class="fas fa-save"></i> ' . Yii::t('app', 'Save'),
+        <div class="card-footer text-end">
+            <?= Html::submitButton('<i class="bi bi-floppy2-fill"></i> ' . Yii::t('app', 'Save'),
                 [
                     'class' => 'btn btn-success',
                     'name' => 'submit-button',
@@ -59,6 +64,9 @@ $this->registerJs($js);
         </div>
         <?php ActiveForm::end();
     } catch (\Exception|Throwable $e) {
-        echo YII_ENV_PROD ? null : $e->getMessage();
+        if (YII_ENV_DEV) {
+            echo 'Exception: ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ")\n";
+            echo $e->getTraceAsString() . "\n";
+        }
     } ?>
 </div>

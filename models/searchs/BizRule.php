@@ -50,9 +50,12 @@ class BizRule extends Model
         $authManager = Configs::authManager();
         $models = [];
         $included = !($this->load($params) && $this->validate() && trim($this->name) !== '');
-        foreach ($authManager->getRules() as $name => $item) {
-            if ($name != RouteRule::RULE_NAME && ($included || stripos($item->name, $this->name) !== false)) {
-                $models[$name] = new MBizRule($item);
+        $rules = $authManager->getRules();
+        if (count($rules)) {
+            foreach ($rules as $name => $item) {
+                if ($name != RouteRule::RULE_NAME && ($included || stripos($item->name, $this->name) !== false)) {
+                    $models[$name] = new MBizRule($item);
+                }
             }
         }
 

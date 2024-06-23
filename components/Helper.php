@@ -3,7 +3,9 @@
 namespace davidxu\admin\components;
 
 use davidxu\admin\models\Route;
+use Exception;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\caching\TagDependency;
 use yii\helpers\ArrayHelper;
 use yii\web\User;
@@ -16,11 +18,15 @@ use yii\web\User;
  */
 class Helper
 {
-    private static $_userRoutes = [];
-    private static $_defaultRoutes;
-    private static $_routes;
+    private static array $_userRoutes = [];
+    private static ?array $_defaultRoutes = [];
+    private static ?array $_routes = [];
 
-    public static function getRegisteredRoutes()
+    /**
+     * @return array
+     * @throws InvalidConfigException
+     */
+    public static function getRegisteredRoutes(): array
     {
         if (self::$_routes === null) {
             self::$_routes = [];
@@ -36,9 +42,10 @@ class Helper
 
     /**
      * Get assigned routes by default roles
-     * @return array
+     * @return array|null
+     * @throws InvalidConfigException
      */
-    protected static function getDefaultRoutes()
+    protected static function getDefaultRoutes(): ?array
     {
         if (self::$_defaultRoutes === null) {
             $manager = Configs::authManager();
@@ -68,10 +75,11 @@ class Helper
 
     /**
      * Get assigned routes of user.
-     * @param integer $userId
+     * @param integer|string $userId
      * @return array
+     * @throws InvalidConfigException
      */
-    public static function getRoutesByUser($userId)
+    public static function getRoutesByUser(int|string $userId): array
     {
         if (!isset(self::$_userRoutes[$userId])) {
             $cache = Configs::cache();
@@ -98,11 +106,13 @@ class Helper
 
     /**
      * Check access route for user.
-     * @param string|array $route
-     * @param integer|User $user
+     * @param array|string $route
+     * @param array $params
+     * @param integer|User|null $user
      * @return boolean
+     * @throws InvalidConfigException
      */
-    public static function checkRoute($route, $params = [], $user = null)
+    public static function checkRoute(array|string $route, array $params = [], User|int $user = null): bool
     {
         $config = Configs::instance();
         $r = static::normalizeRoute($route, $config->advanced);
@@ -143,17 +153,17 @@ class Helper
 
     /**
      * Normalize route
-     * @param  string  $route    Plain route string
-     * @param  boolean|array $advanced Array containing the advanced configuration. Defaults to false.
+     * @param string $route    Plain route string
+     * @param boolean|array $advanced Array containing the advanced configuration. Defaults to false.
      * @return string            Normalized route string
      */
-    protected static function normalizeRoute($route, $advanced = false)
+    protected static function normalizeRoute(string $route, bool|array $advanced = false): string
     {
         if ($route === '') {
             $normalized = '/' . Yii::$app->controller->getRoute();
         } elseif (strncmp($route, '/', 1) === 0) {
             $normalized = $route;
-        } elseif (strpos($route, '/') === false) {
+        } elseif (!str_contains($route, '/')) {
             $normalized = '/' . Yii::$app->controller->getUniqueId() . '/' . $route;
         } elseif (($mid = Yii::$app->controller->module->getUniqueId()) !== '') {
             $normalized = '/' . $mid . '/' . $route;
@@ -170,9 +180,11 @@ class Helper
     /**
      * Filter menu items
      * @param array $items
-     * @param integer|User $user
+     * @param integer|User|null $user
+     * @return array
+     * @throws InvalidConfigException
      */
-    public static function filter($items, $user = null)
+    public static function filter(array $items, User|int $user = null): array
     {
         if ($user === null) {
             $user = Yii::$app->getUser();
@@ -185,13 +197,16 @@ class Helper
      * @param array $items
      * @param integer|User $user
      * @return array
+     * @throws InvalidConfigException
+     * @throws Exception
      */
-    protected static function filterRecursive($items, $user)
+    protected static function filterRecursive(array $items, User|int $user): array
     {
         $result = [];
         foreach ($items as $i => $item) {
             $url = ArrayHelper::getValue($item, 'url', '#');
-            $allow = is_array($url) ? static::checkRoute($url[0], array_slice($url, 1), $user) : true;
+//            $allow = is_array($url) ? static::checkRoute($url[0], array_slice($url, 1), $user) : true;
+            $allow = !is_array($url) || static::checkRoute($url[0], array_slice($url, 1), $user);
 
             if (isset($item['items']) && is_array($item['items'])) {
                 $subItems = self::filterRecursive($item['items'], $user);
@@ -219,10 +234,11 @@ class Helper
      * ],
      * ```
      * @param array|string $buttons
-     * @param integer|User $user
+     * @param integer|User|null $user
      * @return string
+     * @throws InvalidConfigException
      */
-    public static function filterActionColumn($buttons = [], $user = null)
+    public static function filterActionColumn(array|string $buttons = [], User|int $user = null): string
     {
         if (is_array($buttons)) {
             $result = [];
@@ -240,8 +256,9 @@ class Helper
 
     /**
      * Use to invalidate cache.
+     * @throws InvalidConfigException
      */
-    public static function invalidate()
+    public static function invalidate(): void
     {
         if (Configs::cache() !== null) {
             TagDependency::invalidate(Configs::cache(), Configs::CACHE_TAG);

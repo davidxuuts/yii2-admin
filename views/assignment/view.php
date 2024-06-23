@@ -28,7 +28,7 @@ $opts = Json::htmlEncode([
 ]);
 $this->registerJs("var _opts = {$opts};");
 $this->registerJs($this->render('_script.js'));
-$animateIcon = ' <i class="fas fa-sync-alt fa-spin"></i>';
+$animateIcon = ' <i class="bi bi-arrow-repeat fa-spin"></i>';
 
 ?>
 

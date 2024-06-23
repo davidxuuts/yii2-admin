@@ -42,17 +42,20 @@ class Assignment extends \davidxu\admin\BaseObject
     {
         $manager = Configs::authManager();
         $success = 0;
-        foreach ($items as $name) {
-            try {
-                $item = $manager->getRole($name);
-                $item = $item ?: $manager->getPermission($name);
-                $manager->assign($item, $this->id);
-                $success++;
-            } catch (\Exception $exc) {
-                Yii::error($exc->getMessage(), __METHOD__);
+        if (count($items)) {
+            foreach ($items as $name) {
+                try {
+                    $item = $manager->getRole($name);
+                    $item = $item ?: $manager->getPermission($name);
+                    $manager->assign($item, $this->id);
+                    $success++;
+                } catch (\Exception $exc) {
+                    Yii::error($exc->getMessage(), __METHOD__);
+                }
             }
+            Helper::invalidate();
         }
-        Helper::invalidate();
+//        Helper::invalidate();
         return $success;
     }
 
@@ -65,14 +68,16 @@ class Assignment extends \davidxu\admin\BaseObject
     {
         $manager = Configs::authManager();
         $success = 0;
-        foreach ($items as $name) {
-            try {
-                $item = $manager->getRole($name);
-                $item = $item ?: $manager->getPermission($name);
-                $manager->revoke($item, $this->id);
-                $success++;
-            } catch (\Exception $exc) {
-                Yii::error($exc->getMessage(), __METHOD__);
+        if (count($items)) {
+            foreach ($items as $name) {
+                try {
+                    $item = $manager->getRole($name);
+                    $item = $item ?: $manager->getPermission($name);
+                    $manager->revoke($item, $this->id);
+                    $success++;
+                } catch (\Exception $exc) {
+                    Yii::error($exc->getMessage(), __METHOD__);
+                }
             }
         }
         Helper::invalidate();

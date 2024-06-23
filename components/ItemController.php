@@ -2,10 +2,12 @@
 
 namespace davidxu\admin\components;
 
+use davidxu\adminlte4\helpers\ActionHelper;
 use Yii;
 use davidxu\admin\models\AuthItem;
 use davidxu\admin\models\searchs\AuthItem as AuthItemSearch;
-use yii\data\ActiveDataProvider;
+use yii\rbac\Permission;
+use yii\rbac\Rule;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\base\NotSupportedException;
@@ -18,7 +20,7 @@ use yii\rbac\Item;
  * @property integer $type
  * @property array $labels
  * 
- * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 1.0
  */
 class ItemController extends Controller
@@ -27,7 +29,7 @@ class ItemController extends Controller
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'verbs' => [
@@ -43,33 +45,10 @@ class ItemController extends Controller
 
     /**
      * Lists all AuthItem models.
-     * @return mixed
+     * @return string
      */
-    public function actionIndex()
+    public function actionIndex(): string
     {
-//        $key = trim(Yii::$app->request->get('key'));
-//        if ($key) {
-//            $query->from(['m' => $this->modelClass::tableName()])
-//                ->andFilterWhere([
-//                    'or',
-//                    ['like', 'm.name', $key],
-//                    ['like', 'm.route', $key],
-//                    ['like', 'p.name', $key],
-//                ])
-//                ->joinWith(['menuParent p']);
-//        }
-
-//        $dataProvider = new ActiveDataProvider([
-//            'query' => $query,
-//            'pagination' => false,
-//            'sort' => [
-//                'defaultOrder' => [
-//                    'parent' => SORT_ASC,
-//                    'order' => SORT_ASC,
-//                    'id' => SORT_ASC,
-//                ],
-//            ],
-//        ]);
         $searchModel = new AuthItemSearch(['type' => $this->type]);
         $dataProvider = $searchModel->search(Yii::$app->request->getQueryParams());
 
@@ -80,11 +59,35 @@ class ItemController extends Controller
     }
 
     /**
-     * Displays a single AuthItem model.
-     * @param  string $id
-     * @return mixed
+     * @throws NotFoundHttpException
      */
-    public function actionView($id)
+    public function actionAjaxEdit()
+    {
+        $id = Yii::$app->request->get('id');
+        if ($id) {
+            $model = $this->findModel($id);
+        } else {
+            $model = new AuthItem(null);
+            $model->type = $this->type;
+        }
+
+        if ($model->load(Yii::$app->getRequest()->post()) && $model->save()) {
+            Helper::invalidate();
+            return ActionHelper::message(
+                Yii::t('rbac-admin', 'Saved successfully'),
+                $this->redirect(['view', 'id' => $model->name]));
+        } else {
+            return $this->renderAjax($this->action->id, ['model' => $model]);
+        }
+    }
+
+    /**
+     * Displays a single AuthItem model.
+     * @param string $id
+     * @return string
+     * @throws NotFoundHttpException
+     */
+    public function actionView(string $id): string
     {
         $model = $this->findModel($id);
 
@@ -96,12 +99,14 @@ class ItemController extends Controller
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
      */
-    public function actionCreate()
+    public function actionCreate(): mixed
     {
         $model = new AuthItem(null);
         $model->type = $this->type;
         if ($model->load(Yii::$app->getRequest()->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->name]);
+            Helper::invalidate();
+            return ActionHelper::message(Yii::t('app', 'Saved successfully'), $this->redirect(['view', 'id' => $model->name]));
+//            return $this->redirect(['view', 'id' => $model->name]);
         } else {
             return $this->render('create', ['model' => $model]);
         }
@@ -110,14 +115,17 @@ class ItemController extends Controller
     /**
      * Updates an existing AuthItem model.
      * If update is successful, the browser will be redirected to the 'view' page.
-     * @param  string $id
+     * @param string $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
-    public function actionUpdate($id)
+    public function actionUpdate(string $id): mixed
     {
         $model = $this->findModel($id);
         if ($model->load(Yii::$app->getRequest()->post()) && $model->save()) {
-            return $this->redirect(['view', 'id' => $model->name]);
+            Helper::invalidate();
+            return ActionHelper::message(Yii::t('app', 'Saved successfully'), $this->redirect(['view', 'id' => $model->name]));
+//            return $this->redirect(['view', 'id' => $model->name]);
         }
 
         return $this->render('update', ['model' => $model]);
@@ -126,24 +134,28 @@ class ItemController extends Controller
     /**
      * Deletes an existing AuthItem model.
      * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param  string $id
+     * @param string $id
      * @return mixed
+     * @throws NotFoundHttpException
      */
-    public function actionDelete($id)
+    public function actionDelete(string $id): mixed
     {
         $model = $this->findModel($id);
         Configs::authManager()->remove($model->item);
         Helper::invalidate();
+//        Helper::invalidate();
+        return ActionHelper::message(Yii::t('app', 'Deleted successfully'), $this->redirect(['index']));
 
-        return $this->redirect(['index']);
+//        return $this->redirect(['index']);
     }
 
     /**
      * Assign items
      * @param string $id
      * @return array
+     * @throws NotFoundHttpException
      */
-    public function actionAssign($id)
+    public function actionAssign(string $id): array
     {
         $items = Yii::$app->getRequest()->post('items', []);
         $model = $this->findModel($id);
@@ -157,22 +169,24 @@ class ItemController extends Controller
      * Assign items
      * @param string $id
      * @return array
+     * @throws NotFoundHttpException
      */
-    public function actionGetUsers($id)
+    public function actionGetUsers(string $id): array
     {
-        $page = Yii::$app->getRequest()->get('page', 0);
+//        $page = Yii::$app->getRequest()->get('page', 0);
         $model = $this->findModel($id);
         Yii::$app->getResponse()->format = 'json';
 
-        return array_merge($model->getUsers($page));
+        return array_merge($model->getUsers());
     }
 
     /**
      * Assign or remove items
      * @param string $id
      * @return array
+     * @throws NotFoundHttpException
      */
-    public function actionRemove($id)
+    public function actionRemove(string $id): array
     {
         $items = Yii::$app->getRequest()->post('items', []);
         $model = $this->findModel($id);
@@ -185,7 +199,7 @@ class ItemController extends Controller
     /**
      * @inheritdoc
      */
-    public function getViewPath()
+    public function getViewPath(): string
     {
         return $this->module->getViewPath() . DIRECTORY_SEPARATOR . 'item';
     }
@@ -201,7 +215,6 @@ class ItemController extends Controller
 
     /**
      * Type of Auth Item.
-     * @return integer
      */
     public function getType()
     {
@@ -212,10 +225,10 @@ class ItemController extends Controller
      * Finds the AuthItem model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param string $id
-     * @return AuthItem the loaded model
+     * @return AuthItem|Permission|Rule the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected function findModel(string $id): AuthItem|Permission|Rule
     {
         $auth = Configs::authManager();
         $item = $this->type === Item::TYPE_ROLE ? $auth->getRole($id) : $auth->getPermission($id);

@@ -40,11 +40,11 @@ class AssignmentController extends Controller
     /**
      * @inheritdoc
      */
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'assign' => ['post'],
                     'revoke' => ['post'],
@@ -60,7 +60,7 @@ class AssignmentController extends Controller
     public function actionIndex()
     {
         $query = $this->userClassName::find();
-        $key = trim(Yii::$app->request->get('key'));
+        $key = trim(Yii::$app->request->get('key', ''));
         if ($key) {
             $query->andFilterWhere([
                 'like', $this->usernameField, $key

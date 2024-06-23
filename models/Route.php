@@ -275,7 +275,7 @@ class Route extends \davidxu\admin\BaseObject
      */
     protected function getControllerActions($type, $id, $module, &$result)
     {
-        $token = "Create controller with cofig=" . VarDumper::dumpAsString($type) . " and id='$id'";
+        $token = "Create controller with config=" . VarDumper::dumpAsString($type) . " and id='$id'";
         Yii::beginProfile($token, __METHOD__);
         try {
             /* @var $controller \yii\base\Controller */

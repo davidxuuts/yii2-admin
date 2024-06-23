@@ -2,6 +2,9 @@
 
 namespace davidxu\admin\components;
 
+use yii\base\Action;
+use yii\base\ActionFilter;
+use yii\base\InvalidConfigException;
 use yii\web\ForbiddenHttpException;
 use yii\base\Module;
 use Yii;
@@ -28,40 +31,42 @@ use yii\di\Instance;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class AccessControl extends \yii\base\ActionFilter
+class AccessControl extends ActionFilter
 {
     /**
-     * @var User User for check access.
+     * @var User|string User for check access.
      */
-    private $_user = 'user';
+    private User|string $_user = 'user';
     /**
      * @var array List of action that not need to check access.
      */
-    public $allowActions = [];
+    public array $allowActions = [];
 
     /**
      * Get user
-     * @return User
+     * @return User|string
+     * @throws InvalidConfigException
      */
-    public function getUser()
+    public function getUser(): User|string
     {
         if (!$this->_user instanceof User) {
-            $this->_user = Instance::ensure($this->_user, User::className());
+            $this->_user = Instance::ensure($this->_user, User::class);
         }
         return $this->_user;
     }
 
     /**
      * Set user
-     * @param User|string $user
+     * @param string|User $user
      */
-    public function setUser($user)
+    public function setUser(User|string $user): void
     {
         $this->_user = $user;
     }
 
     /**
      * @inheritdoc
+     * @throws ForbiddenHttpException|InvalidConfigException
      */
     public function beforeAction($action)
     {
@@ -76,11 +81,11 @@ class AccessControl extends \yii\base\ActionFilter
     /**
      * Denies the access of the user.
      * The default implementation will redirect the user to the login page if he is a guest;
-     * if the user is already logged, a 403 HTTP exception will be thrown.
-     * @param  User $user the current user
+     * if the user is already logged, a 403-HTTP exception will be thrown.
+     * @param User $user the current user
      * @throws ForbiddenHttpException if the user is already logged in.
      */
-    protected function denyAccess($user)
+    protected function denyAccess(User $user): void
     {
         if ($user->getIsGuest()) {
             $user->loginRequired();
@@ -92,7 +97,7 @@ class AccessControl extends \yii\base\ActionFilter
     /**
      * @inheritdoc
      */
-    protected function isActive($action)
+    protected function isActive($action): bool
     {
         $uniqueId = $action->getUniqueId();
         if ($uniqueId === Yii::$app->getErrorHandler()->errorAction) {
@@ -118,22 +123,24 @@ class AccessControl extends \yii\base\ActionFilter
             // convert action uniqueId into an ID relative to the module
             $mid = $this->owner->getUniqueId();
             $id = $uniqueId;
-            if ($mid !== '' && strpos($id, $mid . '/') === 0) {
+            if ($mid !== '' && str_starts_with($id, $mid . '/')) {
                 $id = substr($id, strlen($mid) + 1);
             }
         } else {
             $id = $action->id;
         }
 
-        foreach ($this->allowActions as $route) {
-            if (substr($route, -1) === '*') {
-                $route = rtrim($route, "*");
-                if ($route === '' || strpos($id, $route) === 0) {
-                    return false;
-                }
-            } else {
-                if ($id === $route) {
-                    return false;
+        if (count($this->allowActions) > 0) {
+            foreach ($this->allowActions as $route) {
+                if (str_ends_with($route, '*')) {
+                    $route = rtrim($route, "*");
+                    if ($route === '' || str_starts_with($id, $route)) {
+                        return false;
+                    }
+                } else {
+                    if ($id === $route) {
+                        return false;
+                    }
                 }
             }
         }

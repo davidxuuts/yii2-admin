@@ -25,8 +25,8 @@ class DbManager extends \yii\rbac\DbManager
      * Memory cache of assignments
      * @var array
      */
-    private $_assignments = [];
-    private $_childrenList;
+    private array $_assignments = [];
+    private array $_childrenList;
 
     /**
      * @inheritdoc
@@ -42,7 +42,7 @@ class DbManager extends \yii\rbac\DbManager
     /**
      * @inheritdoc
      */
-    protected function getChildrenList()
+    protected function getChildrenList(): array
     {
         if ($this->_childrenList === null) {
             $this->_childrenList = parent::getChildrenList();
