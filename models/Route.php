@@ -2,35 +2,42 @@
 
 namespace davidxu\admin\models;
 
+use davidxu\admin\BaseObject;
 use Exception;
 use davidxu\admin\components\Configs;
 use davidxu\admin\components\Helper;
 use davidxu\admin\components\RouteRule;
+use ReflectionClass;
 use Yii;
+use yii\base\Controller;
+use yii\base\InvalidConfigException;
+use yii\base\Module;
 use yii\caching\TagDependency;
 use yii\helpers\VarDumper;
 
 /**
  * Description of Route
  *
+ * @property mixed $routePrefix
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class Route extends \davidxu\admin\BaseObject
+class Route extends BaseObject
 {
     const CACHE_TAG = 'davidxu.admin.route';
 
     const PREFIX_ADVANCED = '@';
     const PREFIX_BASIC = '/';
 
-    private $_routePrefix;
+    private string $_routePrefix = '';
 
     /**
      * Assign or remove items
      * @param array $routes
-     * @return array
+     * @return void
+     * @throws InvalidConfigException
      */
-    public function addNew($routes)
+    public function addNew(array $routes): void
     {
         $manager = Configs::authManager();
         foreach ($routes as $route) {
@@ -46,7 +53,7 @@ class Route extends \davidxu\admin\BaseObject
                     unset($r[0]);
                     foreach ($r as $part) {
                         $part = explode('=', $part);
-                        $item->data['params'][$part[0]] = isset($part[1]) ? $part[1] : '';
+                        $item->data['params'][$part[0]] = $part[1] ?? '';
                     }
                     $this->setDefaultRule();
                     $item->ruleName = RouteRule::RULE_NAME;
@@ -65,9 +72,10 @@ class Route extends \davidxu\admin\BaseObject
     /**
      * Assign or remove items
      * @param array $routes
-     * @return array
+     * @return void
+     * @throws InvalidConfigException
      */
-    public function remove($routes)
+    public function remove(array $routes): void
     {
         $manager = Configs::authManager();
         foreach ($routes as $route) {
@@ -82,10 +90,11 @@ class Route extends \davidxu\admin\BaseObject
     }
 
     /**
-     * Returns route prefix depending on the configuration.
+     * Return route prefix depending on the configuration.
      * @return string Route prefix
+     * @throws InvalidConfigException
      */
-    public function getRoutePrefix()
+    public function getRoutePrefix(): string
     {
         if (!$this->_routePrefix) {
             $this->_routePrefix = Configs::instance()->advanced ? self::PREFIX_ADVANCED : self::PREFIX_BASIC;
@@ -95,10 +104,10 @@ class Route extends \davidxu\admin\BaseObject
 
     /**
      * Returns the correct permission name depending on the configuration.
-     * @param  string $route Route
+     * @param string $route Route
      * @return string        Permission name
      */
-    public function getPermissionName($route)
+    public function getPermissionName(string $route): string
     {
         if (self::PREFIX_BASIC == $this->routePrefix) {
             return self::PREFIX_BASIC . trim($route, self::PREFIX_BASIC);
@@ -110,8 +119,9 @@ class Route extends \davidxu\admin\BaseObject
     /**
      * Get available and assigned routes
      * @return array
+     * @throws InvalidConfigException
      */
-    public function getRoutes()
+    public function getRoutes(): array
     {
         $manager = Configs::authManager();
         // Get advanced configuration
@@ -120,7 +130,6 @@ class Route extends \davidxu\admin\BaseObject
             // Use advanced route scheme.
             // Set advanced route prefix.
             $this->_routePrefix = self::PREFIX_ADVANCED;
-            // Create empty routes array.
             $routes = [];
             // Save original app.
             $yiiApp = Yii::$app;
@@ -128,14 +137,12 @@ class Route extends \davidxu\admin\BaseObject
             foreach ($advanced as $id => $configPaths) {
                 // Force correct id string.
                 $id = $this->routePrefix . ltrim(trim($id), $this->routePrefix);
-                // Create empty config array.
                 $config = [];
                 // Assemble configuration for current app.
                 foreach ($configPaths as $configPath) {
                     // Merge every new configuration with the old config array.
                     $config = yii\helpers\ArrayHelper::merge($config, require (Yii::getAlias($configPath)));
                 }
-                // Create new app using the config array.
                 unset($config['bootstrap']);
                 $app = new yii\web\Application($config);
                 // Get all the routes of the newly created app.
@@ -147,11 +154,9 @@ class Route extends \davidxu\admin\BaseObject
                     $routes[$id . $route] = $id . $route;
                 }
             }
-            // Switch back to original app.
             Yii::$app = $yiiApp;
             unset($yiiApp);
         } else {
-            // Use basic route scheme.
             // Set basic route prefix
             $this->_routePrefix = self::PREFIX_BASIC;
             // Get basic app routes.
@@ -172,10 +177,12 @@ class Route extends \davidxu\admin\BaseObject
     }
 
     /**
-     * Get list of application routes
+     * Get a list of application routes
+     * @param null $module
      * @return array
+     * @throws InvalidConfigException
      */
-    public function getAppRoutes($module = null)
+    public function getAppRoutes($module = null): array
     {
         if ($module === null) {
             $module = Yii::$app;
@@ -187,11 +194,9 @@ class Route extends \davidxu\admin\BaseObject
         if ($cache === null || ($result = $cache->get($key)) === false) {
             $result = [];
             $this->getRouteRecursive($module, $result);
-            if ($cache !== null) {
-                $cache->set($key, $result, Configs::instance()->cacheDuration, new TagDependency([
-                    'tags' => self::CACHE_TAG,
-                ]));
-            }
+            $cache?->set($key, $result, Configs::instance()->cacheDuration, new TagDependency([
+                'tags' => self::CACHE_TAG,
+            ]));
         }
 
         return $result;
@@ -199,10 +204,10 @@ class Route extends \davidxu\admin\BaseObject
 
     /**
      * Get route(s) recursive
-     * @param \yii\base\Module $module
-     * @param array $result
+     * @param Module $module
+     * @param array|string $result
      */
-    protected function getRouteRecursive($module, &$result)
+    protected function getRouteRecursive(Module $module, array|string &$result): void
     {
         $token = "Get Route of '" . get_class($module) . "' with id '" . $module->uniqueId . "'";
         Yii::beginProfile($token, __METHOD__);
@@ -221,7 +226,7 @@ class Route extends \davidxu\admin\BaseObject
             $this->getControllerFiles($module, $namespace, '', $result);
             $all = '/' . ltrim($module->uniqueId . '/*', '/');
             $result[$all] = $all;
-        } catch (\Exception $exc) {
+        } catch (Exception $exc) {
             Yii::error($exc->getMessage(), __METHOD__);
         }
         Yii::endProfile($token, __METHOD__);
@@ -229,13 +234,13 @@ class Route extends \davidxu\admin\BaseObject
 
     /**
      * Get list controller under module
-     * @param \yii\base\Module $module
+     * @param Module $module
      * @param string $namespace
      * @param string $prefix
      * @param mixed $result
-     * @return mixed
+     * @return void
      */
-    protected function getControllerFiles($module, $namespace, $prefix, &$result)
+    protected function getControllerFiles(Module $module, string $namespace, string $prefix, mixed &$result): void
     {
         $path = Yii::getAlias('@' . str_replace('\\', '/', $namespace), false);
         $token = "Get controllers from '$path'";
@@ -255,12 +260,12 @@ class Route extends \davidxu\admin\BaseObject
                     $name = strtolower(preg_replace('/(?<![A-Z])[A-Z]/', ' \0', $baseName));
                     $id = ltrim(str_replace(' ', '-', $name), '-');
                     $className = $namespace . $baseName . 'Controller';
-                    if (strpos($className, '-') === false && class_exists($className) && is_subclass_of($className, 'yii\base\Controller')) {
+                    if (!str_contains($className, '-') && class_exists($className) && is_subclass_of($className, 'yii\base\Controller')) {
                         $this->getControllerActions($className, $prefix . $id, $module, $result);
                     }
                 }
             }
-        } catch (\Exception $exc) {
+        } catch (Exception $exc) {
             Yii::error($exc->getMessage(), __METHOD__);
         }
         Yii::endProfile($token, __METHOD__);
@@ -269,21 +274,21 @@ class Route extends \davidxu\admin\BaseObject
     /**
      * Get list action of controller
      * @param mixed $type
-     * @param string $id
-     * @param \yii\base\Module $module
-     * @param string $result
+     * @param string|int $id
+     * @param Module $module
+     * @param mixed $result
      */
-    protected function getControllerActions($type, $id, $module, &$result)
+    protected function getControllerActions(mixed $type, string|int $id, Module $module, mixed &$result): void
     {
         $token = "Create controller with config=" . VarDumper::dumpAsString($type) . " and id='$id'";
         Yii::beginProfile($token, __METHOD__);
         try {
-            /* @var $controller \yii\base\Controller */
+            /* @var $controller Controller */
             $controller = Yii::createObject($type, [$id, $module]);
             $this->getActionRoutes($controller, $result);
-            $all = "/{$controller->uniqueId}/*";
+            $all = "/$controller->uniqueId/*";
             $result[$all] = $all;
-        } catch (\Exception $exc) {
+        } catch (Exception $exc) {
             Yii::error($exc->getMessage(), __METHOD__);
         }
         Yii::endProfile($token, __METHOD__);
@@ -291,10 +296,10 @@ class Route extends \davidxu\admin\BaseObject
 
     /**
      * Get route of action
-     * @param \yii\base\Controller $controller
-     * @param array $result all controller action.
+     * @param Controller $controller
+     * @param mixed $result all controller action.
      */
-    protected function getActionRoutes($controller, &$result)
+    protected function getActionRoutes(Controller $controller, mixed &$result): void
     {
         $token = "Get actions of controller '" . $controller->uniqueId . "'";
         Yii::beginProfile($token, __METHOD__);
@@ -303,25 +308,26 @@ class Route extends \davidxu\admin\BaseObject
             foreach ($controller->actions() as $id => $value) {
                 $result[$prefix . $id] = $prefix . $id;
             }
-            $class = new \ReflectionClass($controller);
+            $class = new ReflectionClass($controller);
             foreach ($class->getMethods() as $method) {
                 $name = $method->getName();
-                if ($method->isPublic() && !$method->isStatic() && strpos($name, 'action') === 0 && $name !== 'actions') {
+                if ($method->isPublic() && !$method->isStatic() && str_starts_with($name, 'action') && $name !== 'actions') {
                     $name = strtolower(preg_replace('/(?<![A-Z])[A-Z]/', ' \0', substr($name, 6)));
                     $id = $prefix . ltrim(str_replace(' ', '-', $name), '-');
                     $result[$id] = $id;
                 }
             }
-        } catch (\Exception $exc) {
+        } catch (Exception $exc) {
             Yii::error($exc->getMessage(), __METHOD__);
         }
         Yii::endProfile($token, __METHOD__);
     }
 
     /**
-     * Ivalidate cache
+     * Invalidate cache
+     * @throws InvalidConfigException
      */
-    public static function invalidate()
+    public static function invalidate(): void
     {
         if (Configs::cache() !== null) {
             TagDependency::invalidate(Configs::cache(), self::CACHE_TAG);
@@ -330,8 +336,10 @@ class Route extends \davidxu\admin\BaseObject
 
     /**
      * Set default rule of parameterize route.
+     * @throws InvalidConfigException
+     * @throws Exception
      */
-    protected function setDefaultRule()
+    protected function setDefaultRule(): void
     {
         if (Configs::authManager()->getRule(RouteRule::RULE_NAME) === null) {
             Configs::authManager()->add(new RouteRule());

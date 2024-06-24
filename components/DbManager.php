@@ -3,7 +3,7 @@
 namespace davidxu\admin\components;
 
 /**
- * DbManager represents an authorization manager that stores authorization information in database.
+ * DbManager represents an authorization manager that stores authorization information in a database.
  *
  * The database connection is specified by [[$db]]. The database schema could be initialized by applying migration:
  *
@@ -26,7 +26,7 @@ class DbManager extends \yii\rbac\DbManager
      * @var array
      */
     private array $_assignments = [];
-    private array $_childrenList;
+    private ?array $_childrenList = null;
 
     /**
      * @inheritdoc

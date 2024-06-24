@@ -15,11 +15,11 @@ use yii\filters\VerbFilter;
  */
 class RouteController extends Controller
 {
-    public function behaviors()
+    public function behaviors(): array
     {
         return [
             'verbs' => [
-                'class' => VerbFilter::className(),
+                'class' => VerbFilter::class,
                 'actions' => [
                     'create' => ['post'],
                     'assign' => ['post'],
@@ -31,9 +31,9 @@ class RouteController extends Controller
     }
     /**
      * Lists all Route models.
-     * @return mixed
+     * @return string
      */
-    public function actionIndex()
+    public function actionIndex(): string
     {
         $model = new Route();
         return $this->render('index', ['routes' => $model->getRoutes()]);
@@ -42,9 +42,9 @@ class RouteController extends Controller
     /**
      * Creates a new AuthItem model.
      * If creation is successful, the browser will be redirected to the 'view' page.
-     * @return mixed
+     * @return array
      */
-    public function actionCreate()
+    public function actionCreate(): array
     {
         Yii::$app->getResponse()->format = 'json';
         $routes = Yii::$app->getRequest()->post('route', '');
@@ -58,7 +58,7 @@ class RouteController extends Controller
      * Assign routes
      * @return array
      */
-    public function actionAssign()
+    public function actionAssign(): array
     {
         $routes = Yii::$app->getRequest()->post('routes', []);
         $model = new Route();
@@ -71,7 +71,7 @@ class RouteController extends Controller
      * Remove routes
      * @return array
      */
-    public function actionRemove()
+    public function actionRemove(): array
     {
         $routes = Yii::$app->getRequest()->post('routes', []);
         $model = new Route();
@@ -82,9 +82,9 @@ class RouteController extends Controller
 
     /**
      * Refresh cache
-     * @return type
+     * @return array
      */
-    public function actionRefresh()
+    public function actionRefresh(): array
     {
         $model = new Route();
         $model->invalidate();

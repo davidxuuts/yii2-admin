@@ -126,7 +126,7 @@ class Configs extends BaseObject
      * ]
      * ```     *
      */
-    public array|false $advanced;
+    public array|false $advanced = false;
 
     /**
      * @var object|null Instance of self

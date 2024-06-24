@@ -3,6 +3,7 @@
 namespace davidxu\admin\components;
 
 use yii\rbac\Rule;
+use yii\web\User;
 
 /**
  * Description of GuestRule
@@ -20,8 +21,9 @@ class GuestRule extends Rule
     /**
      * @inheritdoc
      */
-    public function execute($user, $item, $params)
+    public function execute($user, $item, $params): bool
     {
+        /** @var User $user */
         return $user->getIsGuest();
     }
 }

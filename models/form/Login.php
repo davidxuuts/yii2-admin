@@ -11,16 +11,16 @@ use davidxu\admin\models\User;
  */
 class Login extends Model
 {
-    public $username;
-    public $password;
-    public $rememberMe = true;
+    public ?string $username = null;
+    public ?string $password = null;
+    public bool $rememberMe = true;
     
-    private $_user = false;
+    private bool|User $_user = false;
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             // username and password are both required
@@ -39,7 +39,7 @@ class Login extends Model
      * @param string $attribute the attribute currently being validated
      * @param array $params the additional name-value pairs given in the rule
      */
-    public function validatePassword($attribute, $params)
+    public function validatePassword(string $attribute, array $params): void
     {
         if (!$this->hasErrors()) {
             $user = $this->getUser();
@@ -54,7 +54,7 @@ class Login extends Model
      *
      * @return boolean whether the user is logged in successfully
      */
-    public function login()
+    public function login(): bool
     {
         if ($this->validate()) {
             return Yii::$app->getUser()->login($this->getUser(), $this->rememberMe ? 3600 * 24 * 30 : 0);
@@ -68,7 +68,7 @@ class Login extends Model
      *
      * @return User|null
      */
-    public function getUser()
+    public function getUser(): ?User
     {
         if ($this->_user === false) {
             $class = Yii::$app->getUser()->identityClass ? : 'davidxu\admin\models\User';

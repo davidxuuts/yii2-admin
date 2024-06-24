@@ -5,8 +5,9 @@ namespace davidxu\admin\models\form;
 use davidxu\admin\components\UserStatus;
 use davidxu\admin\models\User;
 use Yii;
-use yii\base\InvalidParamException;
+use yii\base\InvalidArgumentException;
 use yii\base\Model;
+use yii\db\Exception;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -14,24 +15,24 @@ use yii\helpers\ArrayHelper;
  */
 class ResetPassword extends Model
 {
-    public $password;
-    public $retypePassword;
+    public ?string $password = null;
+    public ?string $retypePassword = null;
     /**
-     * @var User
+     * @var ?User
      */
-    private $_user;
+    private ?User $_user;
 
     /**
      * Creates a form model given a token.
      *
-     * @param  string $token
-     * @param  array $config name-value pairs that will be used to initialize the object properties
-     * @throws InvalidParamException if token is empty or not valid
+     * @param string $token
+     * @param array $config name-value pairs that will be used to initialize the object properties
+     * @throws \Exception
      */
-    public function __construct($token, $config = [])
+    public function __construct($token, array $config = [])
     {
         if (empty($token) || !is_string($token)) {
-            throw new InvalidParamException('Password reset token cannot be blank.');
+            throw new InvalidArgumentException('Password reset token cannot be blank.');
         }
         // check token
         $class = Yii::$app->getUser()->identityClass ?: 'davidxu\admin\models\User';
@@ -42,7 +43,7 @@ class ResetPassword extends Model
             ]);
         }
         if (!$this->_user) {
-            throw new InvalidParamException('Wrong password reset token.');
+            throw new InvalidArgumentException('Wrong password reset token.');
         }
         parent::__construct($config);
     }
@@ -50,7 +51,7 @@ class ResetPassword extends Model
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['password', 'retypePassword'], 'required'],
@@ -62,9 +63,10 @@ class ResetPassword extends Model
     /**
      * Resets password.
      *
-     * @return boolean if password was reset.
+     * @return boolean if the password was reset.
+     * @throws Exception
      */
-    public function resetPassword()
+    public function resetPassword(): bool
     {
         $user = $this->_user;
         $user->setPassword($this->password);
@@ -78,8 +80,9 @@ class ResetPassword extends Model
      *
      * @param string $token password reset token
      * @return boolean
+     * @throws \Exception
      */
-    public static function isPasswordResetTokenValid($token)
+    public static function isPasswordResetTokenValid(string $token): bool
     {
         if (empty($token)) {
             return false;

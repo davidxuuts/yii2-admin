@@ -5,6 +5,7 @@ use davidxu\admin\components\UserStatus;
 use davidxu\admin\models\User;
 use Yii;
 use yii\base\Model;
+use yii\db\Exception;
 use yii\helpers\ArrayHelper;
 
 /**
@@ -12,15 +13,15 @@ use yii\helpers\ArrayHelper;
  */
 class Signup extends Model
 {
-    public $username;
-    public $email;
-    public $password;
-    public $retypePassword;
+    public ?string $username = null;
+    public ?string $email = null;
+    public ?string $password = null;
+    public ?string $retypePassword = null;
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         $class = Yii::$app->getUser()->identityClass ? : 'davidxu\admin\models\User';
         return [
@@ -46,8 +47,10 @@ class Signup extends Model
      * Signs user up.
      *
      * @return User|null the saved model or null if saving fails
+     * @throws Exception
+     * @throws \Exception
      */
-    public function signup()
+    public function signup(): ?User
     {
         if ($this->validate()) {
             $class = Yii::$app->getUser()->identityClass ? : 'davidxu\admin\models\User';

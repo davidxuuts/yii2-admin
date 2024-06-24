@@ -3,13 +3,15 @@
 namespace davidxu\admin;
 
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\helpers\Inflector;
+use yii\web\Application;
 
 /**
  * GUI manager for RBAC.
  *
  * Use [[\yii\base\Module::$controllerMap]] to change property of controller.
- * To change listed menu, use property [[$menus]].
+ * To change a listed menu, use property [[$menus]].
  *
  * ```
  * 'layout' => 'left-menu', // default to null mean use application layout.
@@ -43,24 +45,24 @@ class Module extends \yii\base\Module
      */
     public $defaultRoute = 'assignment';
     /**
-     * @var array Nav bar items.
+     * @var ?array Nav bar items.
      */
-    public $navbar;
+    public ?array $navbar = null;
     /**
      * @var string Main layout using for module. Default to layout of parent module.
      * Its used when `layout` set to 'left-menu', 'right-menu' or 'top-menu'.
      */
-    public $mainLayout = '@davidxu/admin/views/layouts/main.php';
+    public string $mainLayout = '@davidxu/admin/views/layouts/main.php';
     /**
      * @var array
      * @see [[menus]]
      */
-    private $_menus = [];
+    private array $_menus = [];
     /**
      * @var array
      * @see [[menus]]
      */
-    private $_coreItems = [
+    private array $_coreItems = [
         'user' => 'Users',
         'assignment' => 'Assignments',
         'role' => 'Roles',
@@ -70,25 +72,25 @@ class Module extends \yii\base\Module
         'menu' => 'Menus',
     ];
     /**
-     * @var array
+     * @var ?array
      * @see [[items]]
      */
-    private $_normalizeMenus;
+    private ?array $_normalizeMenus = null;
 
     /**
-     * @var string Default url for breadcrumb
+     * @var ?string Default url for breadcrumb
      */
-    public $defaultUrl;
+    public ?string $defaultUrl = null;
 
     /**
-     * @var string Default url label for breadcrumb
+     * @var ?string Default url label for breadcrumb
      */
-    public $defaultUrlLabel;
+    public ?string $defaultUrlLabel = null;
 
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
         if (!isset(Yii::$app->i18n->translations['rbac-admin'])) {
@@ -100,7 +102,7 @@ class Module extends \yii\base\Module
         }
 
         //user did not define the Navbar?
-        if ($this->navbar === null && Yii::$app instanceof \yii\web\Application) {
+        if ($this->navbar === null && Yii::$app instanceof Application) {
             $this->navbar = [
                 ['label' => Yii::t('rbac-admin', 'Help'), 'url' => ['default/index']],
                 ['label' => Yii::t('rbac-admin', 'Application'), 'url' => Yii::$app->homeUrl],
@@ -114,8 +116,9 @@ class Module extends \yii\base\Module
     /**
      * Get available menu.
      * @return array
+     * @throws InvalidConfigException
      */
-    public function getMenus()
+    public function getMenus(): array
     {
         if ($this->_normalizeMenus === null) {
             $mid = '/' . $this->getUniqueId() . '/';
@@ -128,9 +131,9 @@ class Module extends \yii\base\Module
                 'assignment' => ($userClass = Yii::$app->getUser()->identityClass) && is_subclass_of($userClass, 'yii\db\BaseActiveRecord'),
                 'menu' => $config->db && $config->db->schema->getTableSchema($config->menuTable),
             ];
-            foreach ($this->_coreItems as $id => $lable) {
+            foreach ($this->_coreItems as $id => $label) {
                 if (!isset($conditions[$id]) || $conditions[$id]) {
-                    $this->_normalizeMenus[$id] = ['label' => Yii::t('rbac-admin', $lable), 'url' => [$mid . $id]];
+                    $this->_normalizeMenus[$id] = ['label' => Yii::t('rbac-admin', $label), 'url' => [$mid . $id]];
                 }
             }
             foreach (array_keys($this->controllerMap) as $id) {
@@ -157,10 +160,10 @@ class Module extends \yii\base\Module
     }
 
     /**
-     * Set or add available menu.
+     * Set or add an available menu.
      * @param array $menus
      */
-    public function setMenus($menus)
+    public function setMenus(array $menus): void
     {
         $this->_menus = array_merge($this->_menus, $menus);
         $this->_normalizeMenus = null;
@@ -169,10 +172,9 @@ class Module extends \yii\base\Module
     /**
      * @inheritdoc
      */
-    public function beforeAction($action)
+    public function beforeAction($action): bool
     {
         if (parent::beforeAction($action)) {
-            /* @var $action \yii\base\Action */
             $view = $action->controller->getView();
 
             $view->params['breadcrumbs'][] = [

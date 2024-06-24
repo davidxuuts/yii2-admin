@@ -2,13 +2,12 @@
 
 namespace davidxu\admin\models\searchs;
 
-use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
 use davidxu\admin\models\Menu as MenuModel;
 
 /**
- * Menu represents the model behind the search form about [[\davidxu\admin\models\Menu]].
+ * The Menu represents the model behind the search form about [[\davidxu\admin\models\Menu]].
  * 
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
@@ -19,7 +18,7 @@ class Menu extends MenuModel
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['id', 'parent', 'order'], 'integer'],
@@ -30,18 +29,18 @@ class Menu extends MenuModel
     /**
      * @inheritdoc
      */
-    public function scenarios()
+    public function scenarios(): array
     {
         // bypass scenarios() implementation in the parent class
         return Model::scenarios();
     }
 
     /**
-     * Searching menu
-     * @param  array $params
-     * @return \yii\data\ActiveDataProvider
+     * Searching a menu
+     * @param array $params
+     * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search(array $params): ActiveDataProvider
     {
         $query = MenuModel::find()
             ->from(MenuModel::tableName() . ' t')

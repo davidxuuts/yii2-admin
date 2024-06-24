@@ -3,9 +3,11 @@
 namespace davidxu\admin\models\searchs;
 
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\data\ArrayDataProvider;
 use davidxu\admin\components\Configs;
+use yii\rbac\BaseManager;
 use yii\rbac\Item;
 
 /**
@@ -19,15 +21,15 @@ class AuthItem extends Model
     const TYPE_ROUTE = 101;
 
     public string $name = '';
-    public $type;
+    public int $type = 0;
     public string $description = '';
-    public $ruleName;
-    public $data;
+    public ?string $ruleName = null;
+    public ?string $data = null;
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['name', 'ruleName', 'description'], 'safe'],
@@ -38,7 +40,7 @@ class AuthItem extends Model
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'name' => Yii::t('rbac-admin', 'Name'),
@@ -51,16 +53,17 @@ class AuthItem extends Model
     }
 
     /**
-     * Search authitem
+     * Search authItem
      * @param array $params
-     * @return \yii\data\ActiveDataProvider|\yii\data\ArrayDataProvider
+     * @return ArrayDataProvider
+     * @throws InvalidConfigException
      */
-    public function search($params)
+    public function search(array $params): ArrayDataProvider
     {
-        /* @var \yii\rbac\Manager $authManager */
+        /* @var BaseManager $authManager */
         $authManager = Configs::authManager();
         $advanced = Configs::instance()->advanced;
-        $type = (int)($this->type);
+        $type = $this->type;
         if ($type === Item::TYPE_ROLE) {
             $items = $authManager->getRoles();
         } else {

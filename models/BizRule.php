@@ -4,6 +4,7 @@ namespace davidxu\admin\models;
 
 use Exception;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\rbac\Rule;
 use davidxu\admin\components\Configs;
@@ -17,29 +18,29 @@ use davidxu\admin\components\Configs;
 class BizRule extends Model
 {
     /**
-     * @var string name of the rule
+     * @var ?string name of the rule
      */
-    public $name;
+    public ?string $name = null;
 
     /**
      * @var integer UNIX timestamp representing the rule creation time
      */
-    public $createdAt;
+    public int $createdAt = 0;
 
     /**
      * @var integer UNIX timestamp representing the rule updating time
      */
-    public $updatedAt;
+    public int $updatedAt = 0;
 
     /**
-     * @var string Rule classname.
+     * @var ?string Rule classname.
      */
-    public $className;
+    public ?string $className = null;
 
     /**
-     * @var Rule
+     * @var ?Rule
      */
-    private $_item;
+    private ?Rule $_item;
 
     /**
      * Initialize object
@@ -71,7 +72,7 @@ class BizRule extends Model
     /**
      * Validate class exists
      */
-    public function classExists()
+    public function classExists(): void
     {
         if (!class_exists($this->className)) {
             $message = Yii::t('rbac-admin', "Unknown class '{class}'", ['class' => $this->className]);
@@ -109,6 +110,7 @@ class BizRule extends Model
      * Find model by id
      * @param string $id
      * @return null|static
+     * @throws InvalidConfigException
      */
     public static function find(string $id): ?BizRule
     {
@@ -127,6 +129,7 @@ class BizRule extends Model
      */
     public function save(): bool
     {
+        $oldName = null;
         if ($this->validate()) {
             $manager = Configs::authManager();
             $class = $this->className;
@@ -152,7 +155,7 @@ class BizRule extends Model
 
     /**
      * Get item
-     * @return Rule
+     * @return Rule|null
      */
     public function getItem(): ?Rule
     {

@@ -6,6 +6,7 @@ use davidxu\adminlte4\helpers\ActionHelper;
 use Yii;
 use davidxu\admin\models\AuthItem;
 use davidxu\admin\models\searchs\AuthItem as AuthItemSearch;
+use yii\base\InvalidConfigException;
 use yii\rbac\Permission;
 use yii\rbac\Rule;
 use yii\web\Controller;
@@ -46,6 +47,7 @@ class ItemController extends Controller
     /**
      * Lists all AuthItem models.
      * @return string
+     * @throws InvalidConfigException
      */
     public function actionIndex(): string
     {
@@ -59,7 +61,7 @@ class ItemController extends Controller
     }
 
     /**
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|InvalidConfigException
      */
     public function actionAjaxEdit()
     {
@@ -85,7 +87,7 @@ class ItemController extends Controller
      * Displays a single AuthItem model.
      * @param string $id
      * @return string
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|InvalidConfigException
      */
     public function actionView(string $id): string
     {
@@ -98,6 +100,7 @@ class ItemController extends Controller
      * Creates a new AuthItem model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return mixed
+     * @throws InvalidConfigException
      */
     public function actionCreate(): mixed
     {
@@ -114,10 +117,10 @@ class ItemController extends Controller
 
     /**
      * Updates an existing AuthItem model.
-     * If update is successful, the browser will be redirected to the 'view' page.
+     * If the update is successful, the browser will be redirected to the 'view' page.
      * @param string $id
      * @return mixed
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|InvalidConfigException
      */
     public function actionUpdate(string $id): mixed
     {
@@ -136,7 +139,7 @@ class ItemController extends Controller
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param string $id
      * @return mixed
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|InvalidConfigException
      */
     public function actionDelete(string $id): mixed
     {
@@ -153,7 +156,7 @@ class ItemController extends Controller
      * Assign items
      * @param string $id
      * @return array
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|InvalidConfigException
      */
     public function actionAssign(string $id): array
     {
@@ -169,7 +172,7 @@ class ItemController extends Controller
      * Assign items
      * @param string $id
      * @return array
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|InvalidConfigException
      */
     public function actionGetUsers(string $id): array
     {
@@ -184,7 +187,7 @@ class ItemController extends Controller
      * Assign or remove items
      * @param string $id
      * @return array
-     * @throws NotFoundHttpException
+     * @throws NotFoundHttpException|InvalidConfigException
      */
     public function actionRemove(string $id): array
     {
@@ -226,7 +229,7 @@ class ItemController extends Controller
      * If the model is not found, a 404 HTTP exception will be thrown.
      * @param string $id
      * @return AuthItem|Permission|Rule the loaded model
-     * @throws NotFoundHttpException if the model cannot be found
+     * @throws NotFoundHttpException|InvalidConfigException if the model cannot be found
      */
     protected function findModel(string $id): AuthItem|Permission|Rule
     {

@@ -5,6 +5,7 @@ namespace davidxu\admin\models\searchs;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveRecord;
 
 /**
  * AssignmentSearch represents the model behind the search form about Assignment.
@@ -14,13 +15,13 @@ use yii\data\ActiveDataProvider;
  */
 class Assignment extends Model
 {
-    public $id;
-    public $username;
+    public string|int|null $id = null;
+    public ?string $username = null;
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['id', 'username'], 'safe'],
@@ -30,7 +31,7 @@ class Assignment extends Model
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => Yii::t('rbac-admin', 'ID'),
@@ -41,12 +42,12 @@ class Assignment extends Model
 
     /**
      * Create data provider for Assignment model.
-     * @param  array                        $params
-     * @param  \yii\db\ActiveRecord         $class
-     * @param  string                       $usernameField
-     * @return \yii\data\ActiveDataProvider
+     * @param array $params
+     * @param ActiveRecord $class
+     * @param string $usernameField
+     * @return ActiveDataProvider
      */
-    public function search($params, $class, $usernameField)
+    public function search(array $params, ActiveRecord $class, string $usernameField): ActiveDataProvider
     {
         $query = $class::find();
         $dataProvider = new ActiveDataProvider([

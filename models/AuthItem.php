@@ -6,8 +6,11 @@ use davidxu\admin\components\Configs;
 use davidxu\admin\components\Helper;
 use davidxu\admin\controllers\AssignmentController;
 use davidxu\admin\Module;
+use Exception;
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\Model;
+use yii\data\ArrayDataProvider;
 use yii\helpers\Json;
 use yii\helpers\Url;
 use yii\rbac\Item;
@@ -29,23 +32,23 @@ use yii\rbac\Rule;
  */
 class AuthItem extends Model
 {
-    public $name;
-    public $type;
-    public $description;
-    public $ruleName;
-    public $data;
+    public ?string $name = null;
+    public int $type = 0;
+    public ?string $description = null;
+    public ?string $ruleName = null;
+    public ?string $data = null;
 
     /**
-     * @var Item
+     * @var ?Item
      */
-    private $_item;
+    private ?Item $_item;
 
     /**
      * Initialize object
      * @param Item  $item
      * @param array $config
      */
-    public function __construct($item = null, $config = [])
+    public function __construct($item = null, array $config = [])
     {
         $this->_item = $item;
         if ($item !== null) {
@@ -60,8 +63,9 @@ class AuthItem extends Model
 
     /**
      * @inheritdoc
+     * @return array
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['ruleName'], 'checkRule'],
@@ -77,8 +81,9 @@ class AuthItem extends Model
 
     /**
      * Check role is unique
+     * @throws InvalidConfigException
      */
-    public function checkUnique()
+    public function checkUnique(): void
     {
         $authManager = Configs::authManager();
         $value = $this->name;
@@ -94,8 +99,9 @@ class AuthItem extends Model
 
     /**
      * Check for rule
+     * @throws InvalidConfigException
      */
-    public function checkRule()
+    public function checkRule(): void
     {
         $name = $this->ruleName;
         if (!Configs::authManager()->getRule($name)) {
@@ -107,7 +113,7 @@ class AuthItem extends Model
                 } else {
                     $this->addError('ruleName', Yii::t('rbac-admin', 'Invalid rule "{value}"', ['value' => $name]));
                 }
-            } catch (\Exception $exc) {
+            } catch (Exception) {
                 $this->addError('ruleName', Yii::t('rbac-admin', 'Rule "{value}" does not exists', ['value' => $name]));
             }
         }
@@ -116,7 +122,7 @@ class AuthItem extends Model
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'name' => Yii::t('rbac-admin', 'Name'),
@@ -131,17 +137,18 @@ class AuthItem extends Model
      * Check if is new record.
      * @return boolean
      */
-    public function getIsNewRecord()
+    public function getIsNewRecord(): bool
     {
         return $this->_item === null;
     }
 
     /**
-     * Find role
-     * @param string $id
-     * @return null|\self
+     * Find a role
+     * @param string|int $id
+     * @return null|self
+     * @throws InvalidConfigException
      */
-    public static function find($id)
+    public static function find(string|int $id): ?AuthItem
     {
         $item = Configs::authManager()->getRole($id);
         if ($item !== null) {
@@ -154,9 +161,12 @@ class AuthItem extends Model
     /**
      * Save role to [[\yii\rbac\authManager]]
      * @return boolean
+     * @throws InvalidConfigException
+     * @throws Exception
      */
-    public function save()
+    public function save(): bool
     {
+        $oldName = null;
         if ($this->validate()) {
             $manager = Configs::authManager();
             if ($this->_item === null) {
@@ -190,8 +200,9 @@ class AuthItem extends Model
      * Adds an item as a child of another item.
      * @param array $items
      * @return int
+     * @throws InvalidConfigException
      */
-    public function addChildren($items)
+    public function addChildren(array $items): int
     {
         $manager = Configs::authManager();
         $success = 0;
@@ -204,7 +215,7 @@ class AuthItem extends Model
                 try {
                     $manager->addChild($this->_item, $child);
                     $success++;
-                } catch (\Exception $exc) {
+                } catch (Exception $exc) {
                     Yii::error($exc->getMessage(), __METHOD__);
                 }
             }
@@ -219,8 +230,9 @@ class AuthItem extends Model
      * Remove an item as a child of another item.
      * @param array $items
      * @return int
+     * @throws InvalidConfigException
      */
-    public function removeChildren($items)
+    public function removeChildren(array $items): int
     {
         $manager = Configs::authManager();
         $success = 0;
@@ -233,7 +245,7 @@ class AuthItem extends Model
                 try {
                     $manager->removeChild($this->_item, $child);
                     $success++;
-                } catch (\Exception $exc) {
+                } catch (Exception $exc) {
                     Yii::error($exc->getMessage(), __METHOD__);
                 }
             }
@@ -247,8 +259,9 @@ class AuthItem extends Model
     /**
      * Get items
      * @return array
+     * @throws InvalidConfigException
      */
-    public function getItems()
+    public function getItems(): array
     {
         $manager = Configs::authManager();
         $advanced = Configs::instance()->advanced;
@@ -277,10 +290,13 @@ class AuthItem extends Model
         ];
     }
 
-    public function getUsers()
+    /**
+     * @throws InvalidConfigException
+     */
+    public function getUsers(): array
     {
         $module = Yii::$app->controller->module;
-        if (!$module || !$module instanceof Module) {
+        if (!$module instanceof Module) {
             return [];
         }
         $ctrl = $module->createController('assignment');
@@ -294,7 +310,7 @@ class AuthItem extends Model
             $manager = Configs::authManager();
             $ids = $manager->getUserIdsByRole($this->name);
 
-            $provider = new \yii\data\ArrayDataProvider([
+            $provider = new ArrayDataProvider([
                 'allModels' => $ids,
                 'pagination' => [
                     'pageSize' => Configs::userRolePageSize(),
@@ -328,19 +344,19 @@ class AuthItem extends Model
 
     /**
      * Get item
-     * @return Item
+     * @return Item|null
      */
-    public function getItem()
+    public function getItem(): ?Item
     {
         return $this->_item;
     }
 
     /**
      * Get type name
-     * @param  mixed $type
+     * @param mixed|null $type
      * @return string|array
      */
-    public static function getTypeName($type = null)
+    public static function getTypeName(mixed $type = null): array|string
     {
         $result = [
             Item::TYPE_PERMISSION => 'Permission',

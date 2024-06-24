@@ -2,7 +2,6 @@
 
 namespace davidxu\admin\components;
 
-use Yii;
 use yii\rbac\Rule;
 
 /**
@@ -23,9 +22,9 @@ class RouteRule extends Rule
     /**
      * @inheritdoc
      */
-    public function execute($user, $item, $params)
+    public function execute($user, $item, $params): bool
     {
-        $routeParams = isset($item->data['params']) ? $item->data['params'] : [];
+        $routeParams = $item->data['params'] ?? [];
         if (count($routeParams)) {
             foreach ($routeParams as $key => $value) {
                 if (!array_key_exists($key, $params) || $params[$key] != $value) {

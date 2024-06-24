@@ -2,7 +2,7 @@
 
 namespace davidxu\admin\components;
 
-use Yii;
+use yii\base\InvalidConfigException;
 use yii\caching\TagDependency;
 use davidxu\admin\models\Menu;
 use yii\helpers\ArrayHelper;
@@ -10,7 +10,7 @@ use Closure;
 use yii\rbac\BaseManager;
 
 /**
- * MenuHelper used to generate menu depend of user role.
+ * MenuHelper used to generate a menu depend on a user role.
  * Usage
  * 
  * ```
@@ -50,7 +50,7 @@ class MenuHelper
      * @param integer|null $root
      * @param Closure|null $callback use to reformat output.
      * callback should have format like
-     * 
+     *
      * ```
      * function ($menu) {
      *    return [
@@ -64,8 +64,9 @@ class MenuHelper
      * ```
      * @param boolean $refresh
      * @return array
+     * @throws InvalidConfigException
      */
-    public static function getAssignedMenu(mixed $userId, int $root = null, Closure $callback = null, bool $refresh = false)
+    public static function getAssignedMenu(mixed $userId, int $root = null, Closure $callback = null, bool $refresh = false): array
     {
         $config = Configs::instance();
 
@@ -136,11 +137,9 @@ class MenuHelper
                 }
             }
             $assigned = static::requiredParent($assigned, $menus);
-            if ($cache !== null) {
-                $cache->set($key, $assigned, $config->cacheDuration, new TagDependency([
-                    'tags' => Configs::CACHE_TAG
-                ]));
-            }
+            $cache?->set($key, $assigned, $config->cacheDuration, new TagDependency([
+                'tags' => Configs::CACHE_TAG
+            ]));
         }
         $key = [__METHOD__, $assigned, $root];
         if ($refresh || $callback !== null || $cache === null || (($result = $cache->get($key)) === false)) {
@@ -156,11 +155,11 @@ class MenuHelper
 
     /**
      * Ensure all item menu has parent.
-     * @param  array $assigned
-     * @param  array $menus
+     * @param array $assigned
+     * @param array $menus
      * @return array
      */
-    private static function requiredParent($assigned, &$menus)
+    private static function requiredParent(array $assigned, array &$menus): array
     {
         $l = count($assigned);
         for ($i = 0; $i < $l; $i++) {
@@ -175,10 +174,10 @@ class MenuHelper
 
     /**
      * Parse route
-     * @param  string $route
-     * @return mixed
+     * @param ?string $route
+     * @return string|array
      */
-    public static function parseRoute($route)
+    public static function parseRoute(?string $route): string|array
     {
 //        Yii::info('route');
 //        Yii::info($route);
@@ -201,29 +200,24 @@ class MenuHelper
 
     /**
      * Normalize menu
-     * @param  array $assigned
+     * @param array $assigned
      * @param  array $menus
-     * @param  Closure $callback
-     * @param  integer $parent
-     * @param  boolean $root
+     * @param  ?Closure $callback
+     * @param integer|null $parent
+     * @param boolean $root
      * @return array
      */
-    private static function normalizeMenu(&$assigned, &$menus, $callback, $parent = null, $root = true )
+    private static function normalizeMenu(array &$assigned, array &$menus, ?Closure $callback = null, int $parent = null, bool $root = true ): array
     {
-        $children = [];
-        $subitem = [];
+        $subItem = [];
         $result = [];
         $order = [];
         $item = [];
 
-        // Recorre todas las opciones de menú asignadas al rol
         foreach($assigned as $id) {
             $menu = $menus[$id];
-            // Obtiene todas las opciones en el nivel vigente
             if($menu['parent'] === $parent) {
-                // Recupera todos los subitems
                 $children = static::normalizeMenu( $assigned, $menus, $callback, $id, false );
-                // Procesa los items del nivel vigente y anexa sus subitems
                 if(!is_null($callback)) {
                     $item = call_user_func($callback, $menu, $root);
                 } else {
@@ -239,12 +233,12 @@ class MenuHelper
                         }
                     } else {
                         if(is_null($menu['route'])) {
-                            $subitem = [
+                            $subItem = [
                                 '<div class="dropdown-divider"></div>',
                                 '<div class="dropdown-header">'. $menu['name'] . '</div>',
                             ];
                             foreach($children as $child) {
-                                $subitem[] = $child;
+                                $subItem[] = $child;
                             }
                         } else {
                             $item = [
@@ -260,8 +254,8 @@ class MenuHelper
                     $result[] = $item;
                     $order[] = $menu['order'];
                     $item = [];
-                } else if(count($subitem)) {
-                    $result = array_merge($result, $subitem);
+                } else if(count($subItem)) {
+                    $result = array_merge($result, $subItem);
                 }
             }
         }
@@ -275,13 +269,13 @@ class MenuHelper
 
     /**
      * Normalize menu
-     * @param  array $assigned
-     * @param  array $menus
-     * @param  Closure $callback
-     * @param  integer $parent
+     * @param array $assigned
+     * @param array $menus
+     * @param ?Closure $callback
+     * @param integer|null $parent
      * @return array
      */
-    private static function normalizeMenuO(&$assigned, &$menus, $callback, $parent = null)
+    private static function normalizeMenuO(array &$assigned, array &$menus, ?Closure $callback = null, ?int $parent = null): array
     {
         $result = [];
         $order = [];

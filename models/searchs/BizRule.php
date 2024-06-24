@@ -3,11 +3,13 @@
 namespace davidxu\admin\models\searchs;
 
 use Yii;
+use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\data\ArrayDataProvider;
 use davidxu\admin\models\BizRule as MBizRule;
 use davidxu\admin\components\RouteRule;
 use davidxu\admin\components\Configs;
+use yii\rbac\BaseManager;
 
 /**
  * Description of BizRule
@@ -20,9 +22,9 @@ class BizRule extends Model
     /**
      * @var string name of the rule
      */
-    public $name;
+    public string $name;
 
-    public function rules()
+    public function rules(): array
     {
         return [
             [['name'], 'safe']
@@ -32,7 +34,7 @@ class BizRule extends Model
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'name' => Yii::t('rbac-admin', 'Name'),
@@ -42,11 +44,12 @@ class BizRule extends Model
     /**
      * Search BizRule
      * @param array $params
-     * @return \yii\data\ActiveDataProvider|\yii\data\ArrayDataProvider
+     * @return ArrayDataProvider
+     * @throws InvalidConfigException
      */
-    public function search($params)
+    public function search(array $params): ArrayDataProvider
     {
-        /* @var \yii\rbac\Manager $authManager */
+        /* @var BaseManager $authManager */
         $authManager = Configs::authManager();
         $models = [];
         $included = !($this->load($params) && $this->validate() && trim($this->name) !== '');

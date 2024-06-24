@@ -5,6 +5,7 @@ namespace davidxu\admin\models\form;
 use Yii;
 use davidxu\admin\models\User;
 use yii\base\Model;
+use yii\db\Exception;
 
 /**
  * Description of ChangePassword
@@ -14,14 +15,14 @@ use yii\base\Model;
  */
 class ChangePassword extends Model
 {
-    public $oldPassword;
-    public $newPassword;
-    public $retypePassword;
+    public ?string $oldPassword = null;
+    public ?string $newPassword = null;
+    public ?string $retypePassword = null;
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['oldPassword', 'newPassword', 'retypePassword'], 'required'],
@@ -35,7 +36,7 @@ class ChangePassword extends Model
      * Validates the password.
      * This method serves as the inline validation for password.
      */
-    public function validatePassword()
+    public function validatePassword(): void
     {
         /* @var $user User */
         $user = Yii::$app->user->identity;
@@ -47,9 +48,10 @@ class ChangePassword extends Model
     /**
      * Change password.
      *
-     * @return User|null the saved model or null if saving fails
+     * @return User|bool|null the saved model or null if saving fails
+     * @throws Exception
      */
-    public function change()
+    public function change(): User|bool|null
     {
         if ($this->validate()) {
             /* @var $user User */

@@ -5,21 +5,22 @@ namespace davidxu\admin\models\searchs;
 use Yii;
 use yii\base\Model;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveQuery;
 
 /**
  * User represents the model behind the search form about `davidxu\admin\models\User`.
  */
 class User extends Model
 {
-    public $id;
-    public $username;
-    public $email;
-    public $status;
+    public int $id = 0;
+    public ?string $username = null;
+    public ?string $email = null;
+    public int $status = 0;
     
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['id', 'status',], 'integer'],
@@ -28,15 +29,15 @@ class User extends Model
     }
 
     /**
-     * Creates data provider instance with search query applied
+     * Creates data provider instance with a search query applied
      *
      * @param array $params
      *
      * @return ActiveDataProvider
      */
-    public function search($params)
+    public function search(array $params): ActiveDataProvider
     {
-        /* @var $query \yii\db\ActiveQuery */
+        /* @var $query ActiveQuery */
         $class = Yii::$app->getUser()->identityClass ? : 'davidxu\admin\models\User';
         $query = $class::find();
 

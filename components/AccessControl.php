@@ -2,7 +2,6 @@
 
 namespace davidxu\admin\components;
 
-use yii\base\Action;
 use yii\base\ActionFilter;
 use yii\base\InvalidConfigException;
 use yii\web\ForbiddenHttpException;
@@ -65,8 +64,10 @@ class AccessControl extends ActionFilter
     }
 
     /**
-     * @inheritdoc
-     * @throws ForbiddenHttpException|InvalidConfigException
+     * @param $action
+     * @return true|void
+     * @throws ForbiddenHttpException
+     * @throws InvalidConfigException
      */
     public function beforeAction($action)
     {
@@ -96,6 +97,7 @@ class AccessControl extends ActionFilter
 
     /**
      * @inheritdoc
+     * @throws InvalidConfigException
      */
     protected function isActive($action): bool
     {

@@ -2,9 +2,13 @@
 
 namespace davidxu\admin\models;
 
+use davidxu\admin\BaseObject;
 use davidxu\admin\components\Configs;
 use davidxu\admin\components\Helper;
+use Exception;
 use Yii;
+use yii\base\InvalidConfigException;
+use yii\web\IdentityInterface;
 
 /**
  * Description of Assignment
@@ -12,16 +16,16 @@ use Yii;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 2.5
  */
-class Assignment extends \davidxu\admin\BaseObject
+class Assignment extends BaseObject
 {
     /**
-     * @var integer User id
+     * @var int|array User id
      */
-    public $id;
+    public int|array $id;
     /**
-     * @var \yii\web\IdentityInterface User
+     * @var IdentityInterface User
      */
-    public $user;
+    public mixed $user;
 
     /**
      * @inheritdoc
@@ -37,8 +41,9 @@ class Assignment extends \davidxu\admin\BaseObject
      * Grands a roles from a user.
      * @param array $items
      * @return integer number of successful grand
+     * @throws InvalidConfigException
      */
-    public function assign($items)
+    public function assign(array $items): int
     {
         $manager = Configs::authManager();
         $success = 0;
@@ -49,7 +54,7 @@ class Assignment extends \davidxu\admin\BaseObject
                     $item = $item ?: $manager->getPermission($name);
                     $manager->assign($item, $this->id);
                     $success++;
-                } catch (\Exception $exc) {
+                } catch (Exception $exc) {
                     Yii::error($exc->getMessage(), __METHOD__);
                 }
             }
@@ -62,9 +67,10 @@ class Assignment extends \davidxu\admin\BaseObject
     /**
      * Revokes a roles from a user.
      * @param array $items
-     * @return integer number of successful revoke
+     * @return integer number of successful revokes
+     * @throws InvalidConfigException
      */
-    public function revoke($items)
+    public function revoke(array $items): int
     {
         $manager = Configs::authManager();
         $success = 0;
@@ -75,7 +81,7 @@ class Assignment extends \davidxu\admin\BaseObject
                     $item = $item ?: $manager->getPermission($name);
                     $manager->revoke($item, $this->id);
                     $success++;
-                } catch (\Exception $exc) {
+                } catch (Exception $exc) {
                     Yii::error($exc->getMessage(), __METHOD__);
                 }
             }
@@ -87,8 +93,9 @@ class Assignment extends \davidxu\admin\BaseObject
     /**
      * Get all available and assigned roles/permission
      * @return array
+     * @throws InvalidConfigException
      */
-    public function getItems()
+    public function getItems(): array
     {
         $manager = Configs::authManager();
         $available = [];
@@ -118,6 +125,8 @@ class Assignment extends \davidxu\admin\BaseObject
 
     /**
      * @inheritdoc
+     * @param $name
+     * @return mixed|void
      */
     public function __get($name)
     {

@@ -3,27 +3,23 @@
 namespace davidxu\admin\controllers;
 
 use davidxu\admin\components\Helper;
-use davidxu\admin\components\UserStatus;
-use davidxu\admin\models\form\ChangePassword;
-use davidxu\admin\models\form\Login;
-use davidxu\admin\models\form\PasswordResetRequest;
-use davidxu\admin\models\form\ResetPassword;
-use davidxu\admin\models\form\Signup;
+//use davidxu\admin\models\form\ChangePassword;
+//use davidxu\admin\models\form\Login;
+//use davidxu\admin\models\form\PasswordResetRequest;
+//use davidxu\admin\models\form\ResetPassword;
+//use davidxu\admin\models\form\Signup;
 use davidxu\admin\models\form\UserForm;
-use davidxu\admin\models\searchs\User as UserSearch;
 use davidxu\admin\models\User;
 use davidxu\adminlte4\helpers\ActionHelper;
+use Throwable;
 use Yii;
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
-use yii\base\InvalidParamException;
-use yii\base\UserException;
 use yii\data\ActiveDataProvider;
 use yii\db\ActiveRecordInterface;
+use yii\db\StaleObjectException;
 use yii\filters\VerbFilter;
-use yii\mail\BaseMailer;
 use yii\rbac\Item;
-use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\helpers\ArrayHelper;
@@ -135,9 +131,10 @@ class UserController extends Controller
     /**
      * Displays a single User model.
      * @param integer $id
-     * @return mixed
+     * @return string
+     * @throws NotFoundHttpException
      */
-    public function actionView($id)
+    public function actionView(int $id): string
     {
         return $this->render('view', [
                 'model' => $this->findModel($id),
@@ -182,9 +179,13 @@ class UserController extends Controller
      * @param integer $id
      * @return mixed
      */
-    public function actionDelete($id)
+    public function actionDelete(int $id): mixed
     {
-        $this->findModel($id)->delete();
+        try {
+            $this->findModel($id)->delete();
+        } catch (StaleObjectException|NotFoundHttpException|Throwable $e) {
+            echo $e->getMessage();
+        }
 //        Helper::invalidate();
         return ActionHelper::message(Yii::t('app', 'Deleted successfully'), $this->redirect(['index']));
 //        return $this->redirect(['index']);
@@ -299,29 +300,29 @@ class UserController extends Controller
 //                'model' => $model,
 //        ]);
 //    }
-
-    /**
-     * Activate new user
-     * @param integer $id
-     * @return type
-     * @throws UserException
-     * @throws NotFoundHttpException
-     */
-    public function actionActivate($id)
-    {
-        /* @var $user User */
-        $user = $this->findModel($id);
-        if ($user->status == UserStatus::INACTIVE) {
-            $user->status = UserStatus::ACTIVE;
-            if ($user->save()) {
-                return $this->goHome();
-            } else {
-                $errors = $user->firstErrors;
-                throw new UserException(reset($errors));
-            }
-        }
-        return $this->goHome();
-    }
+//
+//    /**
+//     * Activate new user
+//     * @param integer $id
+//     * @return type
+//     * @throws UserException
+//     * @throws NotFoundHttpException
+//     */
+//    public function actionActivate($id)
+//    {
+//        /* @var $user User */
+//        $user = $this->findModel($id);
+//        if ($user->status == UserStatus::INACTIVE) {
+//            $user->status = UserStatus::ACTIVE;
+//            if ($user->save()) {
+//                return $this->goHome();
+//            } else {
+//                $errors = $user->firstErrors;
+//                throw new UserException(reset($errors));
+//            }
+//        }
+//        return $this->goHome();
+//    }
 
     /**
      * Finds the User model based on its primary key value.
@@ -330,7 +331,7 @@ class UserController extends Controller
      * @return User the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected function findModel(int $id): User
     {
         if (($model = User::findOne($id)) !== null) {
             return $model;

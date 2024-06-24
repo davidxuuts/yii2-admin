@@ -17,7 +17,7 @@ class PermissionController extends ItemController
     /**
      * @inheritdoc
      */
-    public function labels()
+    public function labels(): array
     {
         return [
             'Item' => 'Permission',

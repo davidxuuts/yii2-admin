@@ -3,7 +3,9 @@ namespace davidxu\admin\models\form;
 
 use davidxu\admin\components\UserStatus;
 use davidxu\admin\models\User;
+use mdm\admin\models\form\ResetPassword;
 use Yii;
+use yii\base\Exception;
 use yii\base\Model;
 
 /**
@@ -11,12 +13,12 @@ use yii\base\Model;
  */
 class PasswordResetRequest extends Model
 {
-    public $email;
+    public ?string $email = null;
 
     /**
      * @inheritdoc
      */
-    public function rules()
+    public function rules(): array
     {
         $class = Yii::$app->getUser()->identityClass ? : 'davidxu\admin\models\User';
         return [
@@ -34,9 +36,10 @@ class PasswordResetRequest extends Model
     /**
      * Sends an email with a link, for resetting the password.
      *
-     * @return boolean whether the email was send
+     * @return boolean whether the email was sent
+     * @throws Exception
      */
-    public function sendEmail()
+    public function sendEmail(): bool
     {
         /* @var $user User */
         $class = Yii::$app->getUser()->identityClass ? : 'davidxu\admin\models\User';

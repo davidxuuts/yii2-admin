@@ -3,14 +3,17 @@
 namespace davidxu\admin\controllers;
 
 use davidxu\adminlte4\helpers\ActionHelper;
+use Throwable;
 use yii\base\ExitException;
+use yii\base\InvalidConfigException;
 use yii\base\Model;
 use yii\db\ActiveRecord;
 use yii\db\ActiveRecordInterface;
-use yii\helpers\ArrayHelper;
 use Yii;
 use davidxu\admin\models\Menu;
 use yii\data\ActiveDataProvider;
+use yii\db\Exception;
+use yii\db\StaleObjectException;
 use yii\web\BadRequestHttpException;
 use yii\web\Controller;
 use davidxu\admin\components\Helper;
@@ -46,6 +49,8 @@ class MenuController extends Controller
     /**
      * @throws ExitException
      * @throws BadRequestHttpException
+     * @throws Exception
+     * @throws InvalidConfigException
      */
     public function actionAjaxEdit()
     {
@@ -61,8 +66,8 @@ class MenuController extends Controller
         $model = $this->findMenuModel($id, $this->modelClass);
         if ($model->isNewRecord && ($parent = Yii::$app->request->get('parent')) > 0) {
             $model->parent = $parent;
-            /** @var Menu $modelParent */
-            $modelParent = $this->findMenuModel($parent, $this->modelClass);
+//            /** @var Menu $modelParent */
+//            $modelParent = $this->findMenuModel($parent, $this->modelClass);
         }
         ActionHelper::activeFormValidate($model);
         if ($model->load(Yii::$app->request->post())) {
@@ -86,10 +91,15 @@ class MenuController extends Controller
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param integer $id
      * @return mixed
+     * @throws InvalidConfigException|Throwable
      */
     public function actionDelete(int $id): mixed
     {
-        $this->findMenuModel($id)->delete();
+        try {
+            $this->findMenuModel($id)->delete();
+        } catch (StaleObjectException|BadRequestHttpException|Throwable $e) {
+            echo $e->getMessage();
+        }
         Helper::invalidate();
 
         return ActionHelper::message(Yii::t('app', 'Deleted successfully'), $this->redirect(['index']));

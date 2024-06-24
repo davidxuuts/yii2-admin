@@ -4,9 +4,10 @@ namespace davidxu\admin\models;
 
 use Yii;
 use davidxu\admin\components\Configs;
+use yii\base\InvalidConfigException;
 use yii\db\ActiveQuery;
+use yii\db\ActiveRecord;
 use yii\db\Query;
-use davidxu\admin\models\MenuCate;
 
 /**
  * This is the model class for table "menu".
@@ -26,12 +27,13 @@ use davidxu\admin\models\MenuCate;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class Menu extends \yii\db\ActiveRecord
+class Menu extends ActiveRecord
 {
-    public $parent_name;
+    public ?string $parent_name = null;
 
     /**
      * @inheritdoc
+     * @throws InvalidConfigException
      */
     public static function tableName()
     {
@@ -40,6 +42,7 @@ class Menu extends \yii\db\ActiveRecord
 
     /**
      * @inheritdoc
+     * @throws InvalidConfigException
      */
     public static function getDb()
     {
@@ -52,8 +55,9 @@ class Menu extends \yii\db\ActiveRecord
 
     /**
      * @inheritdoc
+     * @throws InvalidConfigException
      */
-    public function rules()
+    public function rules(): array
     {
         return [
             [['order'], 'integer'],
@@ -76,8 +80,9 @@ class Menu extends \yii\db\ActiveRecord
 
     /**
      * Use to loop detected.
+     * @throws InvalidConfigException
      */
-    public function filterParent()
+    public function filterParent(): void
     {
         $parent = $this->parent;
         $db = static::getDb();
@@ -96,7 +101,7 @@ class Menu extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public function attributeLabels()
+    public function attributeLabels(): array
     {
         return [
             'id' => Yii::t('rbac-admin', 'ID'),
@@ -111,33 +116,34 @@ class Menu extends \yii\db\ActiveRecord
 
     /**
      * Get menu parent
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
-    public function getMenuParent()
+    public function getMenuParent(): ActiveQuery
     {
         return $this->hasOne(Menu::class, ['id' => 'parent']);
     }
 
     /**
      * Get menu children
-     * @return \yii\db\ActiveQuery
+     * @return ActiveQuery
      */
-    public function getMenus()
+    public function getMenus(): ActiveQuery
     {
         return $this->hasMany(Menu::class, ['parent' => 'id']);
     }
-    private static $_routes;
+    private static ?array $_routes = null;
 
     /**
      * Get saved routes.
      * @return array
+     * @throws InvalidConfigException
      */
-    public static function getSavedRoutes()
+    public static function getSavedRoutes(): array
     {
         if (self::$_routes === null) {
             self::$_routes = [];
             foreach (Configs::authManager()->getPermissions() as $name => $value) {
-                if ($name[0] === '/' && substr($name, -1) != '*') {
+                if ($name[0] === '/' && !str_ends_with($name, '*')) {
                     self::$_routes[] = $name;
                 }
             }
@@ -145,10 +151,13 @@ class Menu extends \yii\db\ActiveRecord
         return self::$_routes;
     }
 
-    public static function getMenuSource()
+    /**
+     * @throws InvalidConfigException
+     */
+    public static function getMenuSource(): array
     {
         $tableName = static::tableName();
-        return (new \yii\db\Query())
+        return (new Query())
                 ->select(['m.id', 'm.name', 'm.route', 'parent_name' => 'p.name'])
                 ->from(['m' => $tableName])
                 ->leftJoin(['p' => $tableName], '[[m.parent]]=[[p.id]]')

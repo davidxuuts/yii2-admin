@@ -4,11 +4,12 @@ namespace davidxu\admin\controllers;
 
 use Yii;
 use davidxu\admin\models\Assignment;
-use davidxu\admin\models\searchs\Assignment as AssignmentSearch;
 use yii\data\ActiveDataProvider;
+use yii\db\ActiveRecord;
 use yii\web\Controller;
 use yii\web\NotFoundHttpException;
 use yii\filters\VerbFilter;
+use yii\web\User;
 
 /**
  * AssignmentController implements the CRUD actions for Assignment model.
@@ -18,17 +19,17 @@ use yii\filters\VerbFilter;
  */
 class AssignmentController extends Controller
 {
-    public $userClassName;
-    public $idField = 'id';
-    public $usernameField = 'username';
-    public $fullnameField;
-    public $searchClass;
-    public $extraColumns = [];
+    public string|User|ActiveRecord|null $userClassName = null;
+    public string $idField = 'id';
+    public string $usernameField = 'username';
+    public ?string $fullnameField = null;
+//    public $searchClass;
+    public array $extraColumns = [];
 
     /**
      * @inheritdoc
      */
-    public function init()
+    public function init(): void
     {
         parent::init();
         if ($this->userClassName === null) {
@@ -55,9 +56,9 @@ class AssignmentController extends Controller
 
     /**
      * Lists all Assignment models.
-     * @return mixed
+     * @return string
      */
-    public function actionIndex()
+    public function actionIndex(): string
     {
         $query = $this->userClassName::find();
         $key = trim(Yii::$app->request->get('key', ''));
@@ -80,10 +81,11 @@ class AssignmentController extends Controller
 
     /**
      * Displays a single Assignment model.
-     * @param  integer $id
-     * @return mixed
+     * @param integer $id
+     * @return string
+     * @throws NotFoundHttpException
      */
-    public function actionView($id)
+    public function actionView(int $id): string
     {
         $model = $this->findModel($id);
 
@@ -97,10 +99,10 @@ class AssignmentController extends Controller
 
     /**
      * Assign items
-     * @param string $id
+     * @param string|int|array $id
      * @return array
      */
-    public function actionAssign($id)
+    public function actionAssign(string|int|array $id): array
     {
         $items = Yii::$app->getRequest()->post('items', []);
         $model = new Assignment($id);
@@ -111,10 +113,10 @@ class AssignmentController extends Controller
 
     /**
      * Assign items
-     * @param string $id
+     * @param int|array|string $id
      * @return array
      */
-    public function actionRevoke($id)
+    public function actionRevoke(int|array|string $id): array
     {
         $items = Yii::$app->getRequest()->post('items', []);
         $model = new Assignment($id);
@@ -126,11 +128,11 @@ class AssignmentController extends Controller
     /**
      * Finds the Assignment model based on its primary key value.
      * If the model is not found, a 404 HTTP exception will be thrown.
-     * @param  integer $id
+     * @param int|array|string $id
      * @return Assignment the loaded model
      * @throws NotFoundHttpException if the model cannot be found
      */
-    protected function findModel($id)
+    protected function findModel(int|array|string $id): Assignment
     {
         $class = $this->userClassName;
         if (($user = $class::findIdentity($id)) !== null) {

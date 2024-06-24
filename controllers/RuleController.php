@@ -3,8 +3,10 @@
 namespace davidxu\admin\controllers;
 
 use davidxu\adminlte4\helpers\ActionHelper;
+use Exception;
 use Yii;
 use davidxu\admin\models\BizRule;
+use yii\base\InvalidConfigException;
 use yii\web\Controller;
 use davidxu\admin\models\searchs\BizRule as BizRuleSearch;
 use yii\filters\VerbFilter;
@@ -38,6 +40,7 @@ class RuleController extends Controller
     /**
      * Lists all BizRule models.
      * @return string
+     * @throws InvalidConfigException
      */
     public function actionIndex(): string
     {
@@ -50,9 +53,14 @@ class RuleController extends Controller
         ]);
     }
 
-    public function actionAjaxEdit()
+    /**
+     * @return mixed|string
+     * @throws InvalidConfigException
+     * @throws Exception
+     */
+    public function actionAjaxEdit(): mixed
     {
-        $id = Yii::$app->request->get('id', null);
+        $id = Yii::$app->request->get('id');
         $model = $this->findModel($id);
         if ($model->load(Yii::$app->request->post()) && $model->save()) {
             Helper::invalidate();
@@ -70,8 +78,9 @@ class RuleController extends Controller
      * If deletion is successful, the browser will be redirected to the 'index' page.
      * @param string $id
      * @return mixed
+     * @throws InvalidConfigException
      */
-    public function actionDelete(string $id)
+    public function actionDelete(string $id): mixed
     {
         $model = $this->findModel($id);
         Configs::authManager()->remove($model->item);
@@ -85,6 +94,7 @@ class RuleController extends Controller
      * Finds the BizRule model based on its primary key value.
      * @param  ?string $id
      * @return BizRule  the loaded model
+     * @throws InvalidConfigException
      */
     protected function findModel(string $id = null): BizRule
     {
