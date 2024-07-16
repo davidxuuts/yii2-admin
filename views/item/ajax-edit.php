@@ -44,7 +44,7 @@ try {
     <div class="modal-body">
         <div class="container">
             <?= $form->field($model, 'name')->textInput(['maxlength' => 64]) ?>
-            <?= $form->field($model, 'ruleName')->textInput(['id' => 'rule_name']) ?>
+            <?= $form->field($model, 'rule_name')->textInput(['id' => 'rule_name']) ?>
             <?= $form->field($model, 'description')->textarea(['rows' => 2]) ?>
             <?= $form->field($model, 'data')->textarea(['rows' => 6]) ?>
         </div>

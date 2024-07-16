@@ -2,6 +2,8 @@
 
 use davidxu\admin\components\ItemController;
 use davidxu\adminlte4\enums\ModalSizeEnum;
+use yii\base\InvalidConfigException;
+use yii\base\NotSupportedException;
 use yii\data\ActiveDataProvider;
 use yii\helpers\Html;
 use yii\grid\GridView;
@@ -14,16 +16,23 @@ use yii\web\View;
  * @var $this View
  * @var $dataProvider ActiveDataProvider
  * @var $context ItemController
+ * @var array $labels
  */
 
 $context = $this->context;
-$labels = $context->labels();
-$this->title = Yii::t('rbac-admin', $labels['Items']);
-$this->params['breadcrumbs'][] = $this->title;
-
-$rules = array_keys(Configs::authManager()->getRules());
-$rules = array_combine($rules, $rules);
-unset($rules[RouteRule::RULE_NAME]);
+try {
+    $labels = $context->labels();
+    $this->title = Yii::t('rbac-admin', $labels['Items']);
+    $this->params['breadcrumbs'][] = $this->title;
+    $rules = array_keys(Configs::authManager()->getRules());
+    $rules = array_combine($rules, $rules);
+    unset($rules[RouteRule::RULE_NAME]);
+} catch (NotSupportedException|InvalidConfigException $e) {
+    if (YII_ENV_DEV) {
+        echo 'Exception: ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ")\n";
+        echo $e->getTraceAsString() . "\n";
+    }
+}
 ?>
 
 <div class="admin-role-permission-index card card-outline card-secondary">
@@ -46,9 +55,9 @@ unset($rules[RouteRule::RULE_NAME]);
     </div>
     <div class="card-body pt-3 pl-0 pr-0">
         <div class="container">
-<!--            --><?php //= $this->render('../common/_search', [
-//                'placeholder' => Yii::t('rbac-admin', 'Search name/role(permission) name/description')
-//            ]) ?>
+            <?= $this->render('../common/_search', [
+                'placeholder' => Yii::t('rbac-admin', 'Search name/role(permission) name/description')
+            ]) ?>
             <?php try {
                 echo GridView::widget([
                     'dataProvider' => $dataProvider,

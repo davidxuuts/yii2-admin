@@ -3,6 +3,7 @@
 namespace davidxu\admin\controllers;
 
 use davidxu\adminlte4\helpers\ActionHelper;
+use davidxu\adminlte4\widgets\SweetAlert2;
 use Throwable;
 use yii\base\ExitException;
 use yii\base\InvalidConfigException;
@@ -47,12 +48,12 @@ class MenuController extends Controller
     }
 
     /**
-     * @throws ExitException
-     * @throws BadRequestHttpException
+     * @return mixed|string
      * @throws Exception
+     * @throws ExitException
      * @throws InvalidConfigException
      */
-    public function actionAjaxEdit()
+    public function actionAjaxEdit(): mixed
     {
         $id = Yii::$app->request->get('id', 0);
         $routes  = Menu::getSavedRoutes();
@@ -66,8 +67,6 @@ class MenuController extends Controller
         $model = $this->findMenuModel($id, $this->modelClass);
         if ($model->isNewRecord && ($parent = Yii::$app->request->get('parent')) > 0) {
             $model->parent = $parent;
-//            /** @var Menu $modelParent */
-//            $modelParent = $this->findMenuModel($parent, $this->modelClass);
         }
         ActionHelper::activeFormValidate($model);
         if ($model->load(Yii::$app->request->post())) {
@@ -77,7 +76,7 @@ class MenuController extends Controller
                     $this->redirect(Yii::$app->request->referrer));
             }
             return ActionHelper::message(ActionHelper::getError($model),
-                $this->redirect(Yii::$app->request->referrer), 'error');
+                $this->redirect(Yii::$app->request->referrer), SweetAlert2::TYPE_ERROR);
         }
 
         return $this->renderAjax($this->action->id, [
@@ -99,9 +98,9 @@ class MenuController extends Controller
             $this->findMenuModel($id)->delete();
         } catch (StaleObjectException|BadRequestHttpException|Throwable $e) {
             echo $e->getMessage();
+            return ActionHelper::message($e->getMessage(), $this->redirect(['index']), SweetAlert2::TYPE_ERROR);
         }
         Helper::invalidate();
-
         return ActionHelper::message(Yii::t('app', 'Deleted successfully'), $this->redirect(['index']));
     }
 
@@ -109,16 +108,13 @@ class MenuController extends Controller
      * @param int|string|null $id
      * @param string|ActiveRecordInterface $modelClass
      * @return ActiveRecordInterface|ActiveRecord|Model|Menu
-     * @throws BadRequestHttpException
      */
     protected function findMenuModel(int|string|null $id,
                                  string|ActiveRecordInterface $modelClass = Menu::class
     ): ActiveRecordInterface|ActiveRecord|Model|Menu
     {
         /* @var $modelClass ActiveRecordInterface|Model|ActiveRecord */
-        if (!$modelClass) {
-            throw new BadRequestHttpException('No modelClass found.');
-        }
+
         $keys = $modelClass::primaryKey();
         if (count($keys) > 1) {
             $values = explode(',', $id);

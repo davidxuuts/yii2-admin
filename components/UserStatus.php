@@ -5,11 +5,12 @@ namespace davidxu\admin\components;
 /**
  * Description of UserStatus
  *
- * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 2.9
  */
 class UserStatus
 {
-    const INACTIVE = 0;
-    const ACTIVE = 10;
+    const STATUS_ENABLED = 1;
+    const STATUS_DISABLED = 0;
+    const STATUS_DELETED = -1;
 }

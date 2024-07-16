@@ -2,8 +2,8 @@
 
 namespace davidxu\admin\models;
 
-use davidxu\base\enums\AppIdEnum;
-use davidxu\base\enums\StatusEnum;
+use davidxu\adminlte4\enums\AppIdEnum;
+use davidxu\adminlte4\enums\StatusEnum;
 use Yii;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
@@ -13,7 +13,6 @@ use yii\db\ActiveRecord;
  *
  * @property int $id ID
  * @property string $title Title
- * @property string $app_id App ID
  * @property string|null $addon Addons name
  * @property string|null $icon Icon
  * @property int $order Order
@@ -41,9 +40,7 @@ class MenuCate extends ActiveRecord
         return [
             [['title', 'app_id', 'order'], 'required'],
             [['order', 'status'], 'integer'],
-            [['app_id'], 'string', 'max' => 20],
-            [['app_id'], 'in', 'range' => AppIdEnum::getKeys()],
-            [['status'], 'default', 'value' => StatusEnum::ENABLED],
+            [['status'], 'default', 'value' => StatusEnum::STATUS_ENABLED],
             [['status'], 'in', 'range' => StatusEnum::getKeys()],
             [['title', 'icon'], 'string', 'max' => 50],
             [['addon'], 'string', 'max' => 100],
@@ -58,7 +55,6 @@ class MenuCate extends ActiveRecord
         return [
             'id' => 'ID',
             'title' => Yii::t('rbac-admin', 'Title'),
-            'app_id' => 'App ID',
             'addon' => Yii::t('rbac-admin', 'Addons name'),
             'icon' => Yii::t('rbac-admin', 'Icon'),
             'order' => Yii::t('rbac-admin', 'Order'),

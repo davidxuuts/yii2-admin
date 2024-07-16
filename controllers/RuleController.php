@@ -3,15 +3,20 @@
 namespace davidxu\admin\controllers;
 
 use davidxu\adminlte4\helpers\ActionHelper;
+use davidxu\adminlte4\widgets\SweetAlert2;
 use Exception;
 use Yii;
-use davidxu\admin\models\BizRule;
+use davidxu\admin\models\Rule;
+use yii\base\ExitException;
 use yii\base\InvalidConfigException;
+use yii\base\Model;
+use yii\data\ActiveDataProvider;
+use yii\db\ActiveRecord;
+use yii\db\ActiveRecordInterface;
 use yii\web\Controller;
-use davidxu\admin\models\searchs\BizRule as BizRuleSearch;
 use yii\filters\VerbFilter;
 use davidxu\admin\components\Helper;
-use davidxu\admin\components\Configs;
+use yii\rbac\Rule as RbacRule;
 
 /**
  * Description of RuleController
@@ -21,6 +26,8 @@ use davidxu\admin\components\Configs;
  */
 class RuleController extends Controller
 {
+
+    public string|Rule $modelClass = Rule::class;
 
     /**
      * @inheritdoc
@@ -38,73 +45,107 @@ class RuleController extends Controller
     }
 
     /**
-     * Lists all BizRule models.
+     * Lists all Rule models.
      * @return string
-     * @throws InvalidConfigException
      */
     public function actionIndex(): string
     {
-        $searchModel = new BizRuleSearch();
-        $dataProvider = $searchModel->search(Yii::$app->request->getQueryParams());
+        $dataProvider = new ActiveDataProvider([
+            'query' => $this->modelClass::find(),
+        ]);
 
-        return $this->render('index', [
-                'dataProvider' => $dataProvider,
-                'searchModel' => $searchModel,
+        return $this->render($this->action->id, [
+            'dataProvider' => $dataProvider
         ]);
     }
 
     /**
-     * @return mixed|string
+     * @return mixed
      * @throws InvalidConfigException
+     * @throws ExitException
      * @throws Exception
      */
     public function actionAjaxEdit(): mixed
     {
         $id = Yii::$app->request->get('id');
         $model = $this->findModel($id);
-        if ($model->load(Yii::$app->request->post()) && $model->save()) {
-            Helper::invalidate();
-            return ActionHelper::message(
-                Yii::t('rbac-admin', 'Saved successfully'),
-                $this->redirect(['index'])
+        $model->class_name = $model->getClassName();
+
+        ActionHelper::activeFormValidate($model);
+        if ($model->load(Yii::$app->request->post())) {
+            $auth = Yii::$app->authManager;
+            $rule = new $model->class_name;
+            $rule->name = $rule->name ?? $model->name;
+            if ($rule instanceof RbacRule) {
+                $result = $model->isNewRecord ? $auth->add($rule) : $auth->update($rule->name, $rule);
+                if ($result) {
+                    Helper::invalidate();
+                    ActionHelper::message(Yii::t('rbac-admin', 'Saved successfully'),
+                        $this->redirect(Yii::$app->request->referrer));
+                }
+                return ActionHelper::message(ActionHelper::getError($model),
+                    $this->redirect(Yii::$app->request->referrer),
+                    SweetAlert2::TYPE_ERROR
+                );
+            }
+            return ActionHelper::message(ActionHelper::getError($model),
+                $this->redirect(Yii::$app->request->referrer),
+                SweetAlert2::TYPE_ERROR
             );
-        } else {
-            return $this->renderAjax($this->action->id, ['model' => $model]);
         }
+
+        return $this->renderAjax($this->action->id, [
+            'model' => $model,
+        ]);
     }
 
     /**
-     * Deletes an existing BizRule model.
-     * If deletion is successful, the browser will be redirected to the 'index' page.
-     * @param string $id
+     * Delete a Rule
      * @return mixed
      * @throws InvalidConfigException
      */
-    public function actionDelete(string $id): mixed
+    public function actionDelete(): mixed
     {
-        $model = $this->findModel($id);
-        Configs::authManager()->remove($model->item);
-        Helper::invalidate();
-        return ActionHelper::message(Yii::t('rbac-admin', 'Deleted successfully'), $this->redirect(['index']));
-
-//        return $this->redirect(['index']);
+        $model = $this->findModel(Yii::$app->request->get('id'));
+        $auth = Yii::$app->authManager;
+        if ($auth->remove($auth->getRule($model->name))) {
+            Helper::invalidate();
+            return ActionHelper::message(Yii::t('rbac-admin', 'Deleted successfully'),
+                $this->redirect(Yii::$app->request->referrer));
+        }
+        return ActionHelper::message(Yii::t('rbac-admin', 'Delete failed'),
+            $this->redirect(Yii::$app->request->referrer),
+            SweetAlert2::TYPE_ERROR
+        );
     }
 
     /**
-     * Finds the BizRule model based on its primary key value.
-     * @param  ?string $id
-     * @return BizRule  the loaded model
-     * @throws InvalidConfigException
+     * @param int|string|null $id
+     * @param string|ActiveRecordInterface|null $modelClass
+     * @return ActiveRecordInterface|ActiveRecord|Model|Rule
      */
-    protected function findModel(string $id = null): BizRule
+    protected function findModel(int|string|null $id, string|ActiveRecordInterface $modelClass = null): ActiveRecordInterface|ActiveRecord|Model|Rule
     {
-        if (!empty($id)) {
-            $item = Configs::authManager()->getRule($id);
-            if ($item) {
-                return new BizRule($item);
-            }
-            return new BizRule(null);
+        /* @var $modelClass ActiveRecordInterface|Model|ActiveRecord */
+        if (!$modelClass) {
+            $modelClass = $this->modelClass;
         }
-        return new BizRule(null);
+        $keys = $modelClass::primaryKey();
+        if (count($keys) > 1) {
+            $values = explode(',', $id);
+            if (count($keys) === count($values)) {
+                $model = $modelClass::findOne(array_combine($keys, $values));
+            }
+        } elseif ($id !== null) {
+            $model = $modelClass::findOne($id);
+        } elseif ($modelClass::findOne($id) === null) {
+            $model = new $modelClass;
+        }
+
+        if (!isset($model)) {
+            $model = new $modelClass;
+        }
+        $model->loadDefaultValues();
+        return $model;
     }
 }

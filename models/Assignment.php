@@ -2,39 +2,79 @@
 
 namespace davidxu\admin\models;
 
-use davidxu\admin\BaseObject;
+//use davidxu\admin\BaseObject;
 use davidxu\admin\components\Configs;
 use davidxu\admin\components\Helper;
 use Exception;
 use Yii;
 use yii\base\InvalidConfigException;
+//use yii\base\Model;
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveQuery;
+use yii\db\ActiveRecord;
+use yii\db\BaseActiveRecord;
+//use davidxu\admin\models\Item;
+use yii\rbac\Item as RbacItem;
 use yii\web\IdentityInterface;
 
 /**
  * Description of Assignment
  *
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 2.5
+ *
+ * @property string|int|array|null $id ID
+ * @property ?string $item_name Item name
+ * @property ?string $user_id User ID
+ * @property integer|null $created_at Created at
+ *
+ * @property Item $item
  */
-class Assignment extends BaseObject
+class Assignment extends ActiveRecord
 {
-    /**
-     * @var int|array User id
-     */
-    public int|array $id;
     /**
      * @var IdentityInterface User
      */
     public mixed $user;
 
+    public string|int|array|null $id = null;
+    public ?string $username = null;
+//    public ?string $item_name = null;
+//
+//    /**
+//     * @inheritdoc
+//     */
+//    public function __construct($id, $user = null, $config = array())
+//    {
+//        $this->id = $id;
+//        $this->user = $user;
+//        parent::__construct($config);
+//    }
+
+    /**
+     * @return string
+     * @throws InvalidConfigException
+     */
+    public static function tableName(): string
+    {
+//        $authManager = Configs::authManager();
+        return Configs::instance()->assignmentTable;
+    }
+
     /**
      * @inheritdoc
      */
-    public function __construct($id, $user = null, $config = array())
+    public function behaviors(): array
     {
-        $this->id = $id;
-        $this->user = $user;
-        parent::__construct($config);
+        return [
+            [
+                'class' => TimestampBehavior::class,
+                'attributes' => [
+                    BaseActiveRecord::EVENT_BEFORE_INSERT => ['created_at'],
+                ],
+            ],
+        ];
     }
 
     /**
@@ -91,6 +131,36 @@ class Assignment extends BaseObject
     }
 
     /**
+     * @inheritdoc
+     */
+    public function rules(): array
+    {
+        return [
+            [['item_name', 'user_id'], 'required'],
+            [['user_id'], 'integer'],
+            [['item_name'], 'string', 'max' => 64],
+            [['item_name', 'user_id'], 'unique', 'targetAttribute' => ['item_name', 'user_id']],
+            [
+                ['item_name'], 'exist', 'skipOnError' => true,
+                'targetClass' => Item::class,
+                'targetAttribute' => ['item_name' => 'name']
+            ],
+        ];
+    }
+
+    /**
+     * @inheritdoc
+     */
+    public function attributeLabels(): array
+    {
+        return [
+            'item_name' => Yii::t('srbac', 'Name'),
+            'user_id' => Yii::t('srbac', 'User'),
+            'created_at' => Yii::t('srbac', 'Created at'),
+        ];
+    }
+
+    /**
      * Get all available and assigned roles/permission
      * @return array
      * @throws InvalidConfigException
@@ -124,14 +194,39 @@ class Assignment extends BaseObject
     }
 
     /**
-     * @inheritdoc
-     * @param $name
-     * @return mixed|void
+     * Gets query for [[Item]]
+     * @return ActiveQuery
      */
-    public function __get($name)
+    public function getItem(): ActiveQuery
     {
-        if ($this->user) {
-            return $this->user->$name;
-        }
+        return $this->hasOne(Item::class, ['name' => 'item_name']);
     }
+
+//    /**
+//     * Find a role
+//     * @param string|int $id
+//     * @return null|self
+//     * @throws InvalidConfigException
+//     */
+//    public static function find($id): ?Assignment
+//    {
+//        $item = Configs::authManager()->getRole($id);
+//        if ($item !== null) {
+//            return new self((array)$item);
+//        }
+//
+//        return null;
+//    }
+
+//    /**
+//     * @inheritdoc
+//     * @param $name
+//     * @return mixed|void
+//     */
+//    public function __get($name)
+//    {
+//        if ($this->user) {
+//            return $this->user->$name;
+//        }
+//    }
 }

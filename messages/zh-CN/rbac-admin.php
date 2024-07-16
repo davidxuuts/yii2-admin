@@ -2,7 +2,7 @@
 /**
  * Message translations for \davidxu\admin.
  *
- * It contains the localizable messages extracted from source code.
+ * It contains the localized messages extracted from source code.
  * You may modify this file by translating the extracted messages.
  *
  * Each array element represents the translation (value) of a message (key).
@@ -48,6 +48,7 @@ return [
     'Type' => '类型',
     'Description' => '描述',
     'Rule Name' => '规则名称',
+    'Rule name' => '规则名称',
     'Edit rule' => '编辑规则',
     'Data' => '数据',
     'Update Role' => '更新角色',
@@ -55,7 +56,9 @@ return [
     'Please select app id' => '请选择APP ID',
     'Are you sure to delete this item?' => '确认要删除吗?',
     'Saved successfully' => '保存成功',
+    'Save failed' => '保存失败',
     'Deleted successfully' => '删除成功',
+    'Delete failed' => '删除失败',
     'ID' => 'ID',
     'Parent' => '父级',
     'Parent Name' => '父级名称',
@@ -74,6 +77,7 @@ return [
     'Rules' => '规则列表',
     'Update Rule' => '更新规则',
     'Create Menu' => '新增菜单',
+    'Edit Role' => '编辑角色',
     'Menus' => '菜单列表',
     'Search' => '查询',
     'Reset' => '重置',
@@ -91,8 +95,24 @@ return [
     'Help' => '帮助',
     'Application' => '应用',
     '-- Please select --' => '--请选择--',
+    '-- Select role --' => '--请选择角色--',
     'Icon' => '图标',
     'Close' => '关闭',
     'Save' => '保存',
     'Please refer to https://icons.getbootstrap.com/' => '请参考 https://icons.getbootstrap.com/',
+    'Incorrect old password.' => '当前密码不正确',
+    'Current password' => '当前密码',
+    'New password' => '新密码',
+    'New password again' => '重复新密码',
+    'Update password' => '更改密码',
+    'Change password' => '更改密码',
+    'Password' => '密码',
+    'Realname' => '称呼/全称',
+    'Edit user' => '编辑用户',
+    'Search username/real name' => '输入用户名/称呼/全称来查找',
+    'The requested user does not exist.' => '用户不存在',
+    'Can not modify username after account created' => '账号创建后不可修改',
+    'If change password is not need, please keep empty here (suggested)' => '如果无需更改密码请留空(建议)',
+    'If empty, random initial password will be generated (suggested)' => '如果留空则会创建随机密码(建议)',
+    'Unknown class \'{class}\'' => '无效的类{class}',
 ];

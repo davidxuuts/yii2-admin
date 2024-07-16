@@ -13,7 +13,7 @@ use yii\db\Exception;
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
  * @since 1.0
  */
-class ChangePassword extends Model
+class ChangePasswordForm extends Model
 {
     public ?string $oldPassword = null;
     public ?string $newPassword = null;
@@ -41,7 +41,7 @@ class ChangePassword extends Model
         /* @var $user User */
         $user = Yii::$app->user->identity;
         if (!$user || !$user->validatePassword($this->oldPassword)) {
-            $this->addError('oldPassword', 'Incorrect old password.');
+            $this->addError('oldPassword', Yii::t('rbac-admin','Incorrect old password.'));
         }
     }
 
@@ -49,7 +49,7 @@ class ChangePassword extends Model
      * Change password.
      *
      * @return User|bool|null the saved model or null if saving fails
-     * @throws Exception
+     * @throws Exception|\yii\base\Exception
      */
     public function change(): User|bool|null
     {
@@ -64,5 +64,17 @@ class ChangePassword extends Model
         }
 
         return false;
+    }
+
+    /**
+     * {@inheritdoc}
+     */
+    public function attributeLabels(): array
+    {
+        return [
+            'oldPassword' => Yii::t('rbac-admin', 'Current password'),
+            'newPassword' => Yii::t('rbac-admin', 'New password'),
+            'retypePassword' => Yii::t('rbac-admin', 'New password again'),
+        ];
     }
 }

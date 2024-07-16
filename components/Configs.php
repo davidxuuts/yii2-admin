@@ -48,6 +48,11 @@ class Configs extends BaseObject
     const CACHE_TAG = 'davidxu.admin';
 
     /**
+     * @var string config params
+     */
+    public static string $configParams = 'davidxu.admin.configs';
+
+    /**
      * @var ManagerInterface|string .
      */
     public ManagerInterface|string $authManager = 'authManager';
@@ -78,9 +83,65 @@ class Configs extends BaseObject
     public string $menuTable = '{{%menu}}';
 
     /**
-     * @var string Menu table name.
+     * @var string Item table name.
+     */
+    public string $itemTable = '{{%auth_item}}';
+
+    /**
+     * @var string User table name.
      */
     public string $userTable = '{{%user}}';
+
+    /**
+     * @var string AuthItemChild table name.
+     */
+    public string $itemChildTable = '{{%auth_item_child}}';
+
+    /**
+     * @var string AuthAssignment table name.
+     */
+    public string $assignmentTable = '{{%auth_assignment}}';
+
+    /**
+     * @var string AuthRule table name.
+     */
+    public string $ruleTable = '{{%auth_rule}}';
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public static function itemTable(): string
+    {
+        return static::instance()->itemTable;
+    }
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public static function ruleTable(): string
+    {
+        return static::instance()->ruleTable;
+    }
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public static function itemChildTable(): string
+    {
+        return static::instance()->itemChildTable;
+    }
+
+    /**
+     * @return string
+     * @throws Exception
+     */
+    public static function assignmentTable(): string
+    {
+        return static::instance()->assignmentTable;
+    }
 
     /**
      * @var integer Default status user signup. 10 mean active.
@@ -163,7 +224,7 @@ class Configs extends BaseObject
     public static function instance(): object
     {
         if (self::$_instance === null) {
-            $type = ArrayHelper::getValue(Yii::$app->params, 'davidxu.admin.configs', []);
+            $type = ArrayHelper::getValue(Yii::$app->params, self::$configParams, []);
             if (is_array($type) && !isset($type['class'])) {
                 $type['class'] = static::class;
             }

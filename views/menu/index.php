@@ -1,7 +1,6 @@
 <?php
 
 use yii\helpers\Html;
-use yii\grid\GridView;
 use yii\widgets\Pjax;
 use davidxu\adminlte4\yii\grid\ActionColumn;
 use yii\web\View;
@@ -44,7 +43,6 @@ $this->params['breadcrumbs'][] = $this->title;
                     'dataProvider' => $dataProvider,
                     'keyColumnName' => 'id',
                     'parentColumnName' => 'parent',
-                    'parentRootValue' => null, //first parentId value
                     'pluginOptions' => [
                         'initialState' => 'collapsed',
                     ],
@@ -78,7 +76,7 @@ $this->params['breadcrumbs'][] = $this->title;
                         ],
                     ]
                 ]);
-            } catch (Exception $e) {
+            } catch (Exception|Throwable $e) {
                 if (YII_ENV_DEV) {
                     echo 'Exception: ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ")\n";
                     echo $e->getTraceAsString() . "\n";

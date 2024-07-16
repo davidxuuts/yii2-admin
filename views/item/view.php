@@ -27,8 +27,8 @@ AnimateAsset::register($this);
 YiiAsset::register($this);
 $opts = Json::htmlEncode([
         'items' => $model->getItems(),
-        'users' => $model->getUsers(),
-        'getUserUrl' => Url::to(['get-users', 'id' => $model->name])
+//        'users' => $model->getUsers(),
+//        'getUserUrl' => Url::to(['get-users', 'id' => $model->name])
     ]);
 Yii::info($opts);
 $this->registerJs("var _opts = {$opts};");
@@ -37,61 +37,11 @@ $animateIcon = ' <i class="bi bi-arrow-repeat fa-spin"></i>';
 ?>
 <div class="admin-auth-item-view card card-outline card-secondary">
     <div class="card-header">
-        <div class="row gx-1">
-            <div class="col text-end">
-                <?= Html::a('<i class="bi bi-pencil-square"></i> ' . Yii::t('rbac-admin', 'Edit'),
-                    ['ajax-edit', 'id' => $model->name],
-                    [
-                    'class' => 'btn btn-sm btn-secondary',
-                    'data-bs-toggle' => 'modal',
-                    'data-bs-target' => '#modal',
-                    'title' => Yii::t('rbac-admin', 'Create ' . $labels['Item']),
-                    'aria-label' => Yii::t('rbac-admin', 'Create ' . $labels['Item']),
-                    'data-bs-modal-class' => ModalSizeEnum::SIZE_LARGE,
-                ]) ?>
-            </div>
-            <div class="col text-start">
-                <?= Html::a('<i class="bi bi-trash3"></i> ' . Yii::t('rbac-admin', 'Delete'),
-                    ['delete', 'id' => $model->name],
-                    [
-                        'class' => 'btn btn-sm btn-danger',
-                        'data-confirm' => Yii::t('rbac-admin', 'Are you sure to delete this item?'),
-                        'data-method' => 'post',
-                    ]) ?>
-            </div>
-        </div>
+        <h5><?= $model->name ?></h5>
     </div>
     <div class="card-body pt-3 pl-0 pr-0">
         <div class="container">
-            <div class="row">
-                <div class="col-sm-12">
-                    <?= DetailView::widget([
-                        'model' => $model,
-                        'attributes' => [
-                            'name',
-                            'description:ntext',
-                            'ruleName',
-                            'data:ntext',
-                        ],
-                        'template' => '<tr><th style="width:25%">{label}</th><td>{value}</td></tr>',
-                    ]);
-                    ?>
-                </div>
-            </div>
-            <div class="row">
-                <div class="col-sm-12">
-                    <table class="table table-striped table-bordered">
-                        <tbody>
-                        <tr>
-                            <th><?= Yii::t('rbac-admin', 'Assigned users'); ?></th>
-                        </tr>
-                        <tr>
-                            <td id="list-users"></td>
-                        </tr>
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+
             <div class="row">
                 <div class="col-sm-5">
                     <?= Html::textInput(null, null, [

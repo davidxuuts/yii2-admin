@@ -28,6 +28,7 @@ use yii\di\Instance;
  * @property User $user
  * 
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 1.0
  */
 class AccessControl extends ActionFilter
@@ -73,7 +74,7 @@ class AccessControl extends ActionFilter
     {
         $actionId = $action->getUniqueId();
         $user = $this->getUser();
-        if (Helper::checkRoute('/' . $actionId, Yii::$app->getRequest()->get(), $user)) {
+        if (Helper::checkRoute('/' . $actionId, Yii::$app->getRequest()->get(), $user) || in_array($actionId, $this->allowActions)) {
             return true;
         }
         $this->denyAccess($user);

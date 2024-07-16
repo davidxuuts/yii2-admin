@@ -7,23 +7,24 @@
 
 namespace davidxu\admin\models\form;
 
+use yii\base\InvalidConfigException;
 use yii\web\User;
-use davidxu\admin\models\searchs\Assignment;
+use davidxu\admin\models\Assignment;
 use yii\base\Exception;
 use yii\base\Model;
 use Yii;
 use yii\db\ActiveRecord;
 use yii\db\ActiveRecordInterface;
+use davidxu\admin\models\Item;
+use yii\rbac\Item as RbacItem;
 
 class UserForm extends Model
 {
     public string|int|null $id = null;
-
     public ?string $password = null;
-
     public ?string $username = null;
-
     public ?string $realname = null;
+    public ?string $email = null;
 
     public string|array|null $roles = [];
 
@@ -31,21 +32,26 @@ class UserForm extends Model
 
     private ActiveRecord|ActiveRecordInterface|null|User|\davidxu\admin\models\User $_user;
 
+    const SCENARIO_CREATE = 'create';
+
     /**
      * {@inheritDoc}
      */
     public function rules(): array
     {
         return [
-            [['username', 'roles'], 'required'],
+            [['username', 'realname'], 'required'],
+            [['password'], 'required', 'on' => self::SCENARIO_CREATE],
             [['realname'], 'string', 'max' => 50],
             [['password'], 'string', 'min' => 6],
+            [['email'], 'string', 'max' => 255],
+            [['email'], 'email'],
             ['roles', 'safe'],
-//            ['roles', 'in', 'range' => Item::find()->select(['name'])->where([
-//                'type' => RbacItem::TYPE_ROLE,
-//            ])->column(),
-//                'allowArray' => true
-//            ],
+            ['roles', 'in', 'range' => Item::find()->select(['name'])->where([
+                'type' => RbacItem::TYPE_ROLE,
+            ])->column(),
+                'allowArray' => true
+            ],
             ['username', 'isUnique'],
         ];
     }
@@ -56,24 +62,32 @@ class UserForm extends Model
     public function attributeLabels(): array
     {
         return [
-            'password' => Yii::t('srbac', 'Password'),
-            'username' => Yii::t('srbac', 'Username'),
-            'realname' => Yii::t('srbac', 'Realname'),
-            'roles' => Yii::t('srbac', 'Roles'),
+            'password' => Yii::t('rbac-admin', 'Password'),
+            'username' => Yii::t('rbac-admin', 'Username'),
+            'realname' => Yii::t('rbac-admin', 'Realname'),
+            'roles' => Yii::t('rbac-admin', 'Roles'),
         ];
     }
 
     /**
      * Load default _user attributes
      * @return void
+     * @throws InvalidConfigException
      */
     public function loadData(): void
     {
-        if ($this->_user = Yii::$app->user->identity) {
+        $modelClass = new Yii::$app->user->identityClass;
+        if ($this->id) {
+            $this->_user = $modelClass::find()
+                ->where([
+                    'id' => $this->id,
+                ])->one();
             $this->username = $this->_user->username;
+            $this->realname = $this->_user->realname;
+            $this->email = $this->_user->email;
             $this->roles = $this->getRoles();
         } else {
-            $this->_user = new Yii::$app->user->identityClass;
+            $this->_user = new $modelClass;
             $this->isNewUser = true;
         }
     }
@@ -95,7 +109,7 @@ class UserForm extends Model
 
         /** @var User $member */
         if (($member instanceof User) && $member->id !== (int)$this->id) {
-            $this->addError('username', Yii::t('app', 'Username has been token'));
+            $this->addError('username', Yii::t('rbac-admin', 'Username has been token'));
         }
     }
 
@@ -122,6 +136,8 @@ class UserForm extends Model
             }
 
             $member->username = $this->username;
+            $member->realname = $this->realname;
+            $member->email = $this->email;
 
             if (!$member->save()) {
                 $this->addErrors($member->getErrors());
@@ -131,10 +147,9 @@ class UserForm extends Model
             $member->refresh();
             Assignment::deleteAll(['user_id' => $member->id]);
             foreach ($this->roles as $item_name) {
-                $authAssigment = new Assignment([
-                    'user_id' => $member->id,
-                    'item_name' => $item_name,
-                ]);
+                $authAssigment = new Assignment();
+                $authAssigment->user_id = $member->id;
+                $authAssigment->item_name = $item_name;
                 if (!($authAssigment->save())) {
                     $this->addErrors($authAssigment->getErrors());
                     $transaction->rollBack();
@@ -143,8 +158,11 @@ class UserForm extends Model
             }
             $transaction->commit();
             return true;
-        } catch (Exception $exception) {
-            Yii::info($exception->getMessage());
+        } catch (Exception $e) {
+            if (YII_ENV_DEV) {
+                echo 'Exception: ' . $e->getMessage() . ' (' . $e->getFile() . ':' . $e->getLine() . ")\n";
+                echo $e->getTraceAsString() . "\n";
+            }
             $transaction->rollBack();
             return false;
         }

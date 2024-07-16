@@ -10,11 +10,11 @@ use yii\bootstrap5\ActiveForm;
 use yii\helpers\Url;
 use yii\web\View;
 use yii\helpers\Html;
-use davidxu\admin\models\searchs\Menu;
+use davidxu\admin\models\Rule;
 
 /**
  * @var $this View
- * @var $model Menu
+ * @var $model Rule
  * @var $form ActiveForm
  * @var $data array
  */
@@ -41,8 +41,8 @@ try {
     </div>
     <div class="modal-body">
         <div class="container">
-            <?= $form->field($model, 'name')->textInput(['maxlength' => 64]) ?>
-            <?= $form->field($model, 'className')->textInput() ?>
+            <?= $form->field($model, 'name')->textInput(['maxlength' => true]) ?>
+            <?= $form->field($model, 'class_name')->textInput(['maxlength' => true]) ?>
         </div>
     </div>
     <?php

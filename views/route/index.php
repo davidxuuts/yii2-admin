@@ -33,7 +33,7 @@ $animateIcon = ' <i class="bi bi-arrow-repeat fa-spin"></i>';
                     'placeholder' => Yii::t('rbac-admin', 'New route(s)'),
                 ]) ?>
                 <span class="input-group-text">
-                    <?= Html::a(Yii::t('rbac-admin', 'Add') . $animateIcon, ['create'], [
+                    <?= Html::a('<i class="bi bi-plus-circle-fill"></i> ' . Yii::t('rbac-admin', 'Add'), ['create'], [
                         'id' => 'btn-new',
                     ]) ?>
                 </span>

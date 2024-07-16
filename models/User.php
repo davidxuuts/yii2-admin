@@ -18,6 +18,7 @@ use yii\web\IdentityInterface;
  *
  * @property integer $id
  * @property string $username
+ * @property string $realname
  * @property string $password_hash
  * @property string $password_reset_token
  * @property string $email
@@ -30,9 +31,6 @@ use yii\web\IdentityInterface;
  */
 class User extends ActiveRecord implements IdentityInterface
 {
-    const STATUS_INACTIVE = 0;
-    const STATUS_ACTIVE = 10;
-
     /**
      * @inheritdoc
      * @throws InvalidConfigException
@@ -58,7 +56,7 @@ class User extends ActiveRecord implements IdentityInterface
     public function rules(): array
     {
         return [
-            ['status', 'in', 'range' => [UserStatus::ACTIVE, UserStatus::INACTIVE]],
+            ['status', 'in', 'range' => [UserStatus::STATUS_ENABLED, UserStatus::STATUS_DISABLED, UserStatus::STATUS_DELETED]],
         ];
     }
 
@@ -67,7 +65,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findIdentity($id): User|IdentityInterface|null
     {
-        return static::findOne(['id' => $id, 'status' => UserStatus::ACTIVE]);
+        return static::findOne(['id' => $id, 'status' => UserStatus::STATUS_ENABLED]);
     }
 
     /**
@@ -87,7 +85,7 @@ class User extends ActiveRecord implements IdentityInterface
      */
     public static function findByUsername(string $username): ?static
     {
-        return static::findOne(['username' => $username, 'status' => UserStatus::ACTIVE]);
+        return static::findOne(['username' => $username, 'status' => UserStatus::STATUS_ENABLED]);
     }
 
     /**
@@ -104,7 +102,7 @@ class User extends ActiveRecord implements IdentityInterface
 
         return static::findOne([
                 'password_reset_token' => $token,
-                'status' => UserStatus::ACTIVE,
+                'status' => UserStatus::STATUS_ENABLED,
         ]);
     }
 

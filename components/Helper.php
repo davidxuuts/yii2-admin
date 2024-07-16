@@ -2,11 +2,13 @@
 
 namespace davidxu\admin\components;
 
+use davidxu\admin\models\Assignment;
 use davidxu\admin\models\Route;
 use Exception;
 use Yii;
 use yii\base\InvalidConfigException;
 use yii\caching\TagDependency;
+use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
 use yii\web\User;
 
@@ -262,6 +264,28 @@ class Helper
     {
         if (Configs::cache() !== null) {
             TagDependency::invalidate(Configs::cache(), Configs::CACHE_TAG);
+        }
+    }
+
+    /**
+     * @param int $id
+     * @param string $type
+     * @return array|ActiveRecord[]
+     */
+    public static function getRoles(int $id, string $type = 'array'): array
+    {
+        $roles = Assignment::find()->where(['user_id' => $id])->all();
+        if ($type === 'array') {
+            $items = [];
+            if ($roles) {
+                foreach ($roles as $role) {
+                    /** @var Assignment $role */
+                    $items[] = $role->item_name;
+                }
+            }
+            return $items;
+        } else {
+            return $roles;
         }
     }
 }

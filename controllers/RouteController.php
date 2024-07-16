@@ -4,13 +4,15 @@ namespace davidxu\admin\controllers;
 
 use Yii;
 use davidxu\admin\models\Route;
+use yii\base\InvalidConfigException;
 use yii\web\Controller;
 use yii\filters\VerbFilter;
 
 /**
- * Description of RuleController
+ * Description of RouteController
  *
  * @author Misbahul D Munir <misbahuldmunir@gmail.com>
+ * @author David XU <david.xu.uts@163.com>
  * @since 1.0
  */
 class RouteController extends Controller
@@ -29,9 +31,11 @@ class RouteController extends Controller
             ],
         ];
     }
+
     /**
      * Lists all Route models.
      * @return string
+     * @throws InvalidConfigException
      */
     public function actionIndex(): string
     {
@@ -40,9 +44,10 @@ class RouteController extends Controller
     }
 
     /**
-     * Creates a new AuthItem model.
+     * Creates a new Route model.
      * If creation is successful, the browser will be redirected to the 'view' page.
      * @return array
+     * @throws InvalidConfigException
      */
     public function actionCreate(): array
     {
@@ -57,6 +62,7 @@ class RouteController extends Controller
     /**
      * Assign routes
      * @return array
+     * @throws InvalidConfigException
      */
     public function actionAssign(): array
     {
@@ -70,6 +76,7 @@ class RouteController extends Controller
     /**
      * Remove routes
      * @return array
+     * @throws InvalidConfigException
      */
     public function actionRemove(): array
     {
@@ -83,6 +90,7 @@ class RouteController extends Controller
     /**
      * Refresh cache
      * @return array
+     * @throws InvalidConfigException
      */
     public function actionRefresh(): array
     {
